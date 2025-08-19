@@ -23,11 +23,11 @@ local Loc = L[locale] or L["enUS"]
 
 local openableIDs = {
     [237812] = true, -- Cache of Infinite Treasure
-    [211932] = true, -- Cache of Infinite Treasure
-    [223908] = true, -- Minor Bronze Cache
-    [223909] = true, -- Lesser Bronze Cache
-    [223910] = true, -- Bronze Cache
-    [223911] = true, -- Greater Bronze Cache
+    [251821] = true, -- Cache of Infinite Power
+    [246812] = true, -- Minor Bronze Cache
+    [239224] = true, -- Cache of Infinite Treasure
+    [223910] = true, -- 
+    [223911] = true, -- 
 }
 
 -- Declare the saved variable

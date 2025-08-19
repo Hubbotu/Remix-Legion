@@ -32,12 +32,14 @@ Localization/frFR.lua
 handler.lua
 config.lua
 gold.lua
- -- timer.lua
- -- Tooltip.lua
+
 Threads.lua
 AutoQuest.lua
 Tooltip2.lua
- -- Tooltip3.lua
+
 Track.lua
 Tmog.lua
- -- bron.lua
+
+
+777.lua
+888.lua

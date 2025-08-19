@@ -38,15 +38,15 @@ end
 local L = {
     ["enUS"] = {
         ["Threads"] = "|cffFFFFFFThreads:|r",
-        ["Timerunner's Advantage"] = "Timerunner's Advantage",
+        ["Infinite Power"] = "Infinite Power",
     },
     ["ruRU"] = {
         ["Threads"] = "|cffFFFFFFНити:|r",
-        ["Timerunner's Advantage"] = "Безграничная сила",
+        ["Infinite Power"] = "Безграничная сила",
     },
     ["frFR"] = {
         ["Threads"] = "|cffFFFFFFFils:|r",
-        ["Timerunner's Advantage"] = "Avantage du Coureur de Temps",
+        ["Infinite Power"] = "Avantage du Coureur de Temps",
     },
 }
 
@@ -54,7 +54,7 @@ TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tool
     local _, unit = tooltip:GetUnit()
     if unit and UnitIsPlayer(unit) then
         local currentLocale = GetLocale()
-        local spellName = (L[currentLocale] and L[currentLocale]["Timerunner's Advantage"]) or "Timerunner's Advantage"
+        local spellName = (L[currentLocale] and L[currentLocale]["Infinite Power"]) or "Infinite Power"
         local aura = C_UnitAuras.GetAuraDataBySpellName(unit, spellName)
         if aura then
             local total = 0

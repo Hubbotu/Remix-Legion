@@ -3,61 +3,91 @@ local BronzeTracker = CreateFrame("Frame", "BronzeTrackerFrame", UIParent)
 -- Initialize variables
 local initialBronze = 0
 local bronze = 0
-local timestamps = {}
-local startTime = 0
-local BPH = 0
+local bronzeTimestamps = {}
+local bronzeStartTime = 0
+local bronzeBPH = 0
 local sessionBronze = 0
+local initialInfinitePower = 0
+local infinitePower = 0
+local infinitePowerTimestamps = {}
+local infinitePowerStartTime = 0
+local infinitePowerBPH = 0
+local sessionInfinitePower = 0
 
 -- Localization tables
 local L = {
     enUS = {
-        TOTAL_BRONZE = "Total bronze: ",
+        TOTAL_BRONZE = "Total Bronze: ",
         BRONZE_PER_HOUR = "Bronze per hour: ",
         BRONZE_THIS_SESSION = "Bronze this session: ",
-        BRONZE_TRACKER = "Bronze Tracker"
+        TOTAL_INFINITE_POWER = "Total Infinite Power: ",
+        INFINITE_POWER_PER_HOUR = "Infinite Power per hour: ",
+        INFINITE_POWER_THIS_SESSION = "Infinite Power this session: ",
+        BRONZE_TRACKER = "Bronze & Infinite Power Tracker"
     },
     ruRU = {
         TOTAL_BRONZE = "Всего бронзы: ",
         BRONZE_PER_HOUR = "Бронзы в час: ",
         BRONZE_THIS_SESSION = "Бронзы за эту сессию: ",
-        BRONZE_TRACKER = "Отслеживание бронзы"
+        TOTAL_INFINITE_POWER = "Всего бесконечной силы: ",
+        INFINITE_POWER_PER_HOUR = "Бесконечной силы в час: ",
+        INFINITE_POWER_THIS_SESSION = "Бесконечной силы за эту сессию: ",
+        BRONZE_TRACKER = "Отслеживание бронзы и бесконечной силы"
     },
     frFR = {
         TOTAL_BRONZE = "Bronze total: ",
         BRONZE_PER_HOUR = "Bronze par heure: ",
         BRONZE_THIS_SESSION = "Bronze cette session: ",
-        BRONZE_TRACKER = "Suivi de bronze"
+        TOTAL_INFINITE_POWER = "Puissance infinie totale: ",
+        INFINITE_POWER_PER_HOUR = "Puissance infinie par heure: ",
+        INFINITE_POWER_THIS_SESSION = "Puissance infinie cette session: ",
+        BRONZE_TRACKER = "Suivi de bronze et puissance infinie"
     },
-	deDE = {
+    deDE = {
         TOTAL_BRONZE = "Gesamtbronze: ",
         BRONZE_PER_HOUR = "Bronze pro Stunde: ",
         BRONZE_THIS_SESSION = "Bronze diese Sitzung: ",
-        BRONZE_TRACKER = "Bronze-Tracker"
+        TOTAL_INFINITE_POWER = "Gesamte unendliche Kraft: ",
+        INFINITE_POWER_PER_HOUR = "Unendliche Kraft pro Stunde: ",
+        INFINITE_POWER_THIS_SESSION = "Unendliche Kraft diese Sitzung: ",
+        BRONZE_TRACKER = "Bronze- und Unendliche-Kraft-Tracker"
     },
-	esES = {
+    esES = {
         TOTAL_BRONZE = "Bronce general: ",
         BRONZE_PER_HOUR = "Bronce por hora: ",
         BRONZE_THIS_SESSION = "Bronce esta sesión: ",
-        BRONZE_TRACKER = "Rastreador de Bronce"
+        TOTAL_INFINITE_POWER = "Poder infinito total: ",
+        INFINITE_POWER_PER_HOUR = "Poder infinito por hora: ",
+        INFINITE_POWER_THIS_SESSION = "Poder infinito esta sesión: ",
+        BRONZE_TRACKER = "Rastreador de Bronce y Poder Infinito"
     },
-	zhCN = {
+    zhCN = {
         TOTAL_BRONZE = "Total bronze: ",
         BRONZE_PER_HOUR = "Bronze per hour: ",
         BRONZE_THIS_SESSION = "Bronze this session: ",
-        BRONZE_TRACKER = "Bronze Tracker"
+        TOTAL_INFINITE_POWER = "Total Infinite Power: ",
+        INFINITE_POWER_PER_HOUR = "Infinite Power per hour: ",
+        INFINITE_POWER_THIS_SESSION = "Infinite Power this session: ",
+        BRONZE_TRACKER = "Bronze & Infinite Power Tracker"
     },
-	zhTW = {
+    zhTW = {
         TOTAL_BRONZE = "Total bronze: ",
         BRONZE_PER_HOUR = "Bronze per hour: ",
         BRONZE_THIS_SESSION = "Bronze this session: ",
-        BRONZE_TRACKER = "Bronze Tracker"
+        TOTAL_INFINITE_POWER = "Total Infinite Power: ",
+        INFINITE_POWER_PER_HOUR = "Infinite Power per hour: ",
+        INFINITE_POWER_THIS_SESSION = "Infinite Power this session: ",
+        BRONZE_TRACKER = "Bronze & Infinite Power Tracker"
     },
-	koKR = {
+    koKR = {
         TOTAL_BRONZE = "Total bronze: ",
         BRONZE_PER_HOUR = "Bronze per hour: ",
         BRONZE_THIS_SESSION = "Bronze this session: ",
-        BRONZE_TRACKER = "Bronze Tracker"
-	}	
+        TOTAL_INFINITE_POWER = "Total Infinite Power: ",
+        INFINITE_POWER_PER_HOUR = "Infinite Power per hour: ",
+        INFINITE_POWER_THIS_SESSION = "Infinite Power this session: ",
+        BRONZE_TRACKER = "Bronze & Infinite Power Tracker"
+    }
 }
 
 -- Set the default language to English
@@ -70,7 +100,7 @@ end
 
 -- Create a frame for displaying the information
 local displayFrame = CreateFrame("Frame", "BronzeTrackerDisplay", UIParent, "BackdropTemplate")
-displayFrame:SetSize(200, 100)
+displayFrame:SetSize(280, 155)
 displayFrame:SetPoint("CENTER")
 displayFrame:SetBackdrop({
     bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
@@ -107,19 +137,34 @@ local totalBronzeText = displayFrame:CreateFontString(nil, "OVERLAY", "GameFontN
 totalBronzeText:SetPoint("TOPLEFT", 10, -30)
 totalBronzeText:SetText(L[lang].TOTAL_BRONZE .. "0")
 
-local BPHText = displayFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-BPHText:SetPoint("TOPLEFT", 10, -50)
-BPHText:SetText(L[lang].BRONZE_PER_HOUR .. "0")
+local bronzeBPHText = displayFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+bronzeBPHText:SetPoint("TOPLEFT", 10, -50)
+bronzeBPHText:SetText(L[lang].BRONZE_PER_HOUR .. "0")
 
 local sessionBronzeText = displayFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 sessionBronzeText:SetPoint("TOPLEFT", 10, -70)
 sessionBronzeText:SetText(L[lang].BRONZE_THIS_SESSION .. "0")
 
+local totalInfinitePowerText = displayFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+totalInfinitePowerText:SetPoint("TOPLEFT", 10, -90)
+totalInfinitePowerText:SetText(L[lang].TOTAL_INFINITE_POWER .. "0")
+
+local infinitePowerBPHText = displayFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+infinitePowerBPHText:SetPoint("TOPLEFT", 10, -110)
+infinitePowerBPHText:SetText(L[lang].INFINITE_POWER_PER_HOUR .. "0")
+
+local sessionInfinitePowerText = displayFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+sessionInfinitePowerText:SetPoint("TOPLEFT", 10, -130)
+sessionInfinitePowerText:SetText(L[lang].INFINITE_POWER_THIS_SESSION .. "0")
+
 -- Function to update the display
 local function UpdateDisplay()
     totalBronzeText:SetText(L[lang].TOTAL_BRONZE .. bronze)
-    BPHText:SetText(L[lang].BRONZE_PER_HOUR .. string.format("%.1f", BPH))
+    bronzeBPHText:SetText(L[lang].BRONZE_PER_HOUR .. string.format("%.1f", bronzeBPH))
     sessionBronzeText:SetText(L[lang].BRONZE_THIS_SESSION .. sessionBronze)
+    totalInfinitePowerText:SetText(L[lang].TOTAL_INFINITE_POWER .. infinitePower)
+    infinitePowerBPHText:SetText(L[lang].INFINITE_POWER_PER_HOUR .. string.format("%.1f", infinitePowerBPH))
+    sessionInfinitePowerText:SetText(L[lang].INFINITE_POWER_THIS_SESSION .. sessionInfinitePower)
 end
 
 -- OnUpdate script to update the display regularly
@@ -129,14 +174,25 @@ end)
 
 -- Function to initialize variables
 local function Initialize()
-    local currencyInfo = C_CurrencyInfo.GetCurrencyInfo(3252)
-    if currencyInfo then
-        initialBronze = currencyInfo.quantity
+    local bronzeInfo = C_CurrencyInfo.GetCurrencyInfo(3252)
+    local infinitePowerInfo = C_CurrencyInfo.GetCurrencyInfo(3268)
+    
+    if bronzeInfo then
+        initialBronze = bronzeInfo.quantity
         bronze = initialBronze
-        timestamps = {}
-        startTime = GetTime()
-        BPH = 0
+        bronzeTimestamps = {}
+        bronzeStartTime = GetTime()
+        bronzeBPH = 0
         sessionBronze = 0
+    end
+    
+    if infinitePowerInfo then
+        initialInfinitePower = infinitePowerInfo.quantity
+        infinitePower = initialInfinitePower
+        infinitePowerTimestamps = {}
+        infinitePowerStartTime = GetTime()
+        infinitePowerBPH = 0
+        sessionInfinitePower = 0
     end
 
     -- Load saved variables
@@ -160,34 +216,64 @@ local function Initialize()
     end
 end
 
--- Function to update bronze and BPH
-local function UpdateBronze()
-    local currencyInfo = C_CurrencyInfo.GetCurrencyInfo(3252)
-    if currencyInfo then
-        bronze = currencyInfo.quantity
+-- Function to update currencies
+local function UpdateCurrencies()
+    local bronzeInfo = C_CurrencyInfo.GetCurrencyInfo(3252)
+    local infinitePowerInfo = C_CurrencyInfo.GetCurrencyInfo(3268)
+    
+    -- Update Bronze
+    if bronzeInfo then
+        bronze = bronzeInfo.quantity
         sessionBronze = bronze - initialBronze
 
         if bronze == initialBronze then
-            BPH = 0
-            return
-        end
-
-        local currentTime = GetTime()
-        table.insert(timestamps, currentTime)
-
-        local cutoffTime = currentTime - 300
-        while timestamps[1] and timestamps[1] < cutoffTime do
-            table.remove(timestamps, 1)
-        end
-
-        local threadCount = bronze - initialBronze
-        local elapsedMinutes = (currentTime - startTime) / 60
-        local elapsedHours = elapsedMinutes / 60
-
-        if elapsedHours > 0 then
-            BPH = threadCount / elapsedHours
+            bronzeBPH = 0
         else
-            BPH = 0
+            local currentTime = GetTime()
+            table.insert(bronzeTimestamps, currentTime)
+
+            local cutoffTime = currentTime - 300
+            while bronzeTimestamps[1] and bronzeTimestamps[1] < cutoffTime do
+                table.remove(bronzeTimestamps, 1)
+            end
+
+            local threadCount = bronze - initialBronze
+            local elapsedMinutes = (currentTime - bronzeStartTime) / 60
+            local elapsedHours = elapsedMinutes / 60
+
+            if elapsedHours > 0 then
+                bronzeBPH = threadCount / elapsedHours
+            else
+                bronzeBPH = 0
+            end
+        end
+    end
+    
+    -- Update Infinite Power
+    if infinitePowerInfo then
+        infinitePower = infinitePowerInfo.quantity
+        sessionInfinitePower = infinitePower - initialInfinitePower
+
+        if infinitePower == initialInfinitePower then
+            infinitePowerBPH = 0
+        else
+            local currentTime = GetTime()
+            table.insert(infinitePowerTimestamps, currentTime)
+
+            local cutoffTime = currentTime - 300
+            while infinitePowerTimestamps[1] and infinitePowerTimestamps[1] < cutoffTime do
+                table.remove(infinitePowerTimestamps, 1)
+            end
+
+            local powerCount = infinitePower - initialInfinitePower
+            local elapsedMinutes = (currentTime - infinitePowerStartTime) / 60
+            local elapsedHours = elapsedMinutes / 60
+
+            if elapsedHours > 0 then
+                infinitePowerBPH = powerCount / elapsedHours
+            else
+                infinitePowerBPH = 0
+            end
         end
     end
 end
@@ -197,7 +283,7 @@ local function OnEvent(self, event, ...)
     if event == "PLAYER_LOGIN" then
         Initialize()
     elseif event == "CURRENCY_DISPLAY_UPDATE" then
-        UpdateBronze()
+        UpdateCurrencies()
     end
 end
 
