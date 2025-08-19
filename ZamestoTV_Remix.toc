@@ -1,0 +1,43 @@
+## Interface: 110200
+## Title: Remix Legion
+## Title-ruRU: Ремикс Легиона
+## Notes: Achievement locations for Remix: Legion
+## Notes-ruRU: Расположение достижений для Remix: Legion
+## Author: ZamestoTV
+## IconTexture: Interface\AddOns\ZamestoTV_GoldFarm\Icons\goblin
+## Version: 1.0.5
+## DefaultState: enabled
+## X-Category: Map
+## SavedVariables: HandyNotes_GoldDB
+## RequiredDeps: HandyNotes
+## OptionalDeps: 
+## DefaultState: Enabled
+## LoadOnDemand: 0
+## SavedVariables: ZammCountdownSettings
+## SavedVariables: BronzeTrackerDB
+## SavedVariables: ZorROpenableScanEnabled
+## SavedVariablesPerCharacter: 
+
+## Category-enUS: Addons ZamestoTV
+## Category-ruRU: Аддоны ZamestoTV
+
+#@no-lib-strip@
+embeds.xml
+#@end-no-lib-strip@
+
+Localization/ruRU.lua
+Localization/enUS.lua
+Localization/frFR.lua
+
+handler.lua
+config.lua
+gold.lua
+ -- timer.lua
+ -- Tooltip.lua
+Threads.lua
+AutoQuest.lua
+Tooltip2.lua
+ -- Tooltip3.lua
+Track.lua
+Tmog.lua
+ -- bron.lua
