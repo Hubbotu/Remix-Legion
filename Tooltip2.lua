@@ -26,8 +26,11 @@ local openableIDs = {
     [251821] = true, -- Cache of Infinite Power
     [246812] = true, -- Minor Bronze Cache
     [239224] = true, -- Cache of Infinite Treasure
-    [223910] = true, -- 
-    [223911] = true, -- 
+    [246813] = true, -- Greater Bronze Cache
+    [246814] = true, -- Bronze Cache
+    [246815] = true, -- Lesser Bronze Cache	
+    [256763] = true, -- Cache from the Infinite's Armory
+    [251821] = true, -- Cache of Infinite Power
 }
 
 -- Declare the saved variable
