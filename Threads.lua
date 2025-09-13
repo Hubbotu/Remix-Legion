@@ -26,7 +26,7 @@ local function formatNumber(num)
         color = "|cffADD8E6" -- Light Blue
     elseif num >= 15000 then
         color = "|cff00FF00" -- Green 
-    elseif num > 10000 then
+    elseif num >= 10000 then
         color = "|cff90EE90" -- Light Green
     else
         color = "|cff808080" -- Gray
@@ -54,16 +54,31 @@ TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tool
     local _, unit = tooltip:GetUnit()
     if unit and UnitIsPlayer(unit) then
         local currentLocale = GetLocale()
-        local spellName = (L[currentLocale] and L[currentLocale]["Infinite Power"]) or "Infinite Power"
-        local aura = C_UnitAuras.GetAuraDataBySpellName(unit, spellName)
-        if aura then
+        
+        -- Threads display (MOP Remix: Timerunner's Advantage)
+        local threadsSpellName = (L[currentLocale] and L[currentLocale]["Infinite Power"]) or "Infinite Power"
+        local threadsAura = C_UnitAuras.GetAuraDataBySpellName(unit, threadsSpellName)
+        if threadsAura then
             local total = 0
             for i = 1, 9 do
-                total = total + (aura.points[i] or 0)
+                total = total + (threadsAura.points[i] or 0)
             end
             local formattedTotal, color = formatNumber(total)
             local threadsText = (L[currentLocale] and L[currentLocale]["Threads"]) or "|cffFFFFFFThreads:|r"
             tooltip:AddLine("\n" .. threadsText .. " " .. color .. formattedTotal)
+        end
+
+        -- Aura Infinite Power display
+        local powerSpellName = (L[currentLocale] and L[currentLocale]["Infinite Power"]) or "Infinite Power"
+        local powerAura = C_UnitAuras.GetAuraDataBySpellName(unit, powerSpellName)
+        if powerAura then
+            local total = 0
+            for i = 1, #powerAura.points do
+                total = total + (powerAura.points[i] or 0)
+            end
+            local formattedTotal, color = formatNumber(total)
+            local powerText = (L[currentLocale] and L[currentLocale]["Infinite Power"]) or "Infinite Power"
+            tooltip:AddLine("\n|cff00FF00" .. powerText .. ":|r " .. color .. formattedTotal)
         end
     end
 end)
