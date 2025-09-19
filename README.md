@@ -1,2 +1,2 @@
 # Remix-Legion
-Исправлено Track.lua
+Bronze tracker, auto chest opening, equipment tips, secret chest and rare monster locations and much more.
