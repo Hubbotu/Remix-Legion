@@ -4,7 +4,7 @@
 ## Notes: Achievement locations for Remix: Legion
 ## Notes-ruRU: Расположение достижений для Remix: Legion
 ## Author: ZamestoTV
-## IconTexture: Interface\AddOns\ZamestoTV_GoldFarm\Icons\goblin
+## IconTexture: Interface\AddOns\ZamestoTV_Remix\Icons\goblin
 ## Version: 1.0.9
 ## DefaultState: enabled
 ## X-Category: Map
@@ -13,10 +13,7 @@
 ## OptionalDeps: 
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
-## SavedVariables: ZammCountdownSettings
-## SavedVariables: BronzeTrackerDB
-## SavedVariables: ZorROpenableScanEnabled
-## SavedVariablesPerCharacter: 
+## SavedVariables: ZammCountdownSettings, BronzeTrackerDB, ZorROpenableScanEnabled
 
 ## Category-enUS: Addons ZamestoTV
 ## Category-ruRU: Аддоны ZamestoTV
