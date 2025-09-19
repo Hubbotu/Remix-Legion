@@ -55,7 +55,6 @@ TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tool
     if unit and UnitIsPlayer(unit) then
         local currentLocale = GetLocale()
         
-        -- Threads display (MOP Remix: Timerunner's Advantage)
         local threadsSpellName = (L[currentLocale] and L[currentLocale]["Infinite Power"]) or "Infinite Power"
         local threadsAura = C_UnitAuras.GetAuraDataBySpellName(unit, threadsSpellName)
         if threadsAura then
@@ -68,7 +67,6 @@ TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tool
             tooltip:AddLine("\n" .. threadsText .. " " .. color .. formattedTotal)
         end
 
-        -- Aura Infinite Power display
         local powerSpellName = (L[currentLocale] and L[currentLocale]["Infinite Power"]) or "Infinite Power"
         local powerAura = C_UnitAuras.GetAuraDataBySpellName(unit, powerSpellName)
         if powerAura then
@@ -81,4 +79,5 @@ TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tool
             tooltip:AddLine("\n|cff00FF00" .. powerText .. ":|r " .. color .. formattedTotal)
         end
     end
+
 end)
