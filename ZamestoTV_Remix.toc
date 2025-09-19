@@ -5,7 +5,7 @@
 ## Notes-ruRU: Расположение достижений для Remix: Legion
 ## Author: ZamestoTV
 ## IconTexture: Interface\AddOns\ZamestoTV_GoldFarm\Icons\goblin
-## Version: 1.0.7
+## Version: 1.0.9
 ## DefaultState: enabled
 ## X-Category: Map
 ## SavedVariables: HandyNotes_GoldDB
@@ -27,7 +27,6 @@ embeds.xml
 
 Localization/ruRU.lua
 Localization/enUS.lua
-Localization/frFR.lua
 
 handler.lua
 config.lua
@@ -40,4 +39,4 @@ Tmog.lua
 Upp.lua
 
 
-888.lua
+TestWQuest.lua
