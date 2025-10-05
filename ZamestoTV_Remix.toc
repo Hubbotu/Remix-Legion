@@ -5,7 +5,7 @@
 ## Notes-ruRU: Расположение достижений для Remix: Legion
 ## Author: ZamestoTV
 ## IconTexture: Interface\AddOns\ZamestoTV_Remix\Icons\goblin
-## Version: 1.0.9
+## Version: 1.0.11
 ## DefaultState: enabled
 ## X-Category: Map
 ## SavedVariables: HandyNotes_GoldDB
