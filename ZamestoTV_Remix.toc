@@ -5,7 +5,7 @@
 ## Notes-ruRU: Расположение достижений для Remix: Legion
 ## Author: ZamestoTV
 ## IconTexture: Interface\AddOns\ZamestoTV_Remix\Icons\goblin
-## Version: 1.0.11
+## Version: 1.1.0
 ## DefaultState: enabled
 ## X-Category: Map
 ## SavedVariables: HandyNotes_GoldDB
@@ -13,7 +13,7 @@
 ## OptionalDeps: 
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
-## SavedVariables: ZammCountdownSettings, BronzeTrackerDB, ZorROpenableScanEnabled
+## SavedVariables: ZammCountdownSettings, BronzeTrackerDB, ZorROpenableScanEnabled, RemixAddon_SavedVariables
 
 ## Category-enUS: Addons ZamestoTV
 ## Category-ruRU: Аддоны ZamestoTV
@@ -34,6 +34,6 @@ Tooltip2.lua
 Track.lua
 Tmog.lua
 Upp.lua
-
+Boost.lua
 
 TestWQuest.lua
