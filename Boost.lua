@@ -120,7 +120,7 @@ local function CreateToyButtons()
         border:SetBlendMode("ADD")
         border:SetAlpha(0.7)
         border:SetPoint("CENTER", toyButton, "CENTER", 0, 1)
-        border:SetSize(70, 70)
+        border:SetSize(64, 64)
 
         -- Tooltip handling
         toyButton:SetScript("OnEnter", function(self)
