@@ -1,11 +1,11 @@
-## Interface: 110200
+## Interface: 110205
 ## Title: Remix Legion
 ## Title-ruRU: Ремикс Легиона
 ## Notes: Achievement locations for Remix: Legion
 ## Notes-ruRU: Расположение достижений для Remix: Legion
 ## Author: ZamestoTV
 ## IconTexture: Interface\AddOns\ZamestoTV_Remix\Icons\goblin
-## Version: 1.1.2
+## Version: 1.1.4
 ## DefaultState: enabled
 ## X-Category: Map
 ## SavedVariables: HandyNotes_GoldDB
