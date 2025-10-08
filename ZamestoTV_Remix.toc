@@ -25,6 +25,7 @@ embeds.xml
 Localization/ruRU.lua
 Localization/enUS.lua
 
+Boost.lua
 handler.lua
 config.lua
 gold.lua
@@ -34,6 +35,5 @@ Tooltip2.lua
 Track.lua
 Tmog.lua
 Upp.lua
-Boost.lua
 
 TestWQuest.lua

@@ -12,7 +12,7 @@ RemixAddon_SavedVariables = RemixAddon_SavedVariables or {
     }
 }
 
--- Toy data from your file
+-- Toy data
 local Toys = {
     [1] = {
         itemId = 187898,
@@ -29,7 +29,6 @@ local Toys = {
         name = "Warband Map to Everywhere All At Once",
         icon = 237387
     },
-    -- Add more toys here as needed
 }
 
 -- Store all toy buttons
@@ -216,18 +215,19 @@ local function ResetButtonPositions()
     print("Toy buttons position reset")
 end
 
--- Function to add the Remix button to Collections Journal
+-- Function to add the Remix button to ToyBox
 local function AddRemixButton()
-    -- Check if CollectionsJournal exists
-    if not CollectionsJournal then return end
+    if not ToyBox or _G["CollectionsJournalRemixButton"] then return end
     
     -- Create the Remix button
     local remixButton = CreateFrame("Button", "CollectionsJournalRemixButton", CollectionsJournal, "UIPanelButtonTemplate")
     remixButton:SetSize(100, 22)
-    remixButton:SetPoint("TOPLEFT", CollectionsJournal, "TOPLEFT", 45, 20) -- Moved 20px right and 20px up
+    remixButton:SetPoint("BOTTOMRIGHT", ToyBox, "TOPRIGHT", -40, 5) -- Match file 1's positioning
     remixButton:SetText("Remix")
+    remixButton:Show() -- Explicitly ensure visibility
     
     remixButton:SetScript("OnClick", ToggleToyButtons)
+    print("Remix button added to ToyBox.")
 end
 
 -- Event handling
@@ -235,15 +235,14 @@ RemixAddon:RegisterEvent("ADDON_LOADED")
 RemixAddon:RegisterEvent("PLAYER_LOGIN")
 
 RemixAddon:SetScript("OnEvent", function(self, event, arg1)
-    if event == "ADDON_LOADED" and arg1 == "ZamestoTV_ChatTranslator" then
-        -- Addon loaded
-        print("Remix Addon loaded")
+    if event == "ADDON_LOADED" and (arg1 == "Blizzard_Collections" or arg1 == "Blizzard_ToyBox") then
+        C_Timer.After(0.1, AddRemixButton) -- Match file 1's delay
     elseif event == "PLAYER_LOGIN" then
-        -- Wait for UI to be fully loaded
-        C_Timer.After(1, function()
-            AddRemixButton()
-            CreateToyButtons() -- Create but hide initially
-        end)
+        if C_AddOns and C_AddOns.IsAddOnLoaded and C_AddOns.IsAddOnLoaded("Blizzard_Collections") then
+            C_Timer.After(0.1, AddRemixButton) -- Match file 1's delay
+        else
+            self:RegisterEvent("ADDON_LOADED")
+        end
     end
 end)
 
