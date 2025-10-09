@@ -13,7 +13,7 @@
 ## OptionalDeps: 
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
-## SavedVariables: ZammCountdownSettings, BronzeTrackerDB, ZorROpenableScanEnabled, RemixAddon_SavedVariables
+## SavedVariables: ZammCountdownSettings, BronzeTrackerDB, ZorROpenableScanEnabled, RemixAddon_SavedVariables, HandyNotes_SomeAddonDB, HandyNotes_BattleTreasuresDB,  state
 
 ## Category-enUS: Addons ZamestoTV
 ## Category-ruRU: Аддоны ZamestoTV
@@ -35,5 +35,5 @@ Tooltip2.lua
 Track.lua
 Tmog.lua
 Upp.lua
-
+AScrap.lua
 TestWQuest.lua
