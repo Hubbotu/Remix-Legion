@@ -42,11 +42,11 @@ local L = {
     },
     ["ruRU"] = {
         ["Threads"] = "|cffFFFFFFНити:|r",
-        ["Infinite Power"] = "Безграничная сила",
+        ["Infinite Power"] = "Бесконечная сила",
     },
     ["frFR"] = {
         ["Threads"] = "|cffFFFFFFFils:|r",
-        ["Infinite Power"] = "Avantage du Coureur de Temps",
+        ["Infinite Power"] = "Pouvoir infini",
     },
 }
 
