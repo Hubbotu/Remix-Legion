@@ -133,6 +133,7 @@ local cosmeticsAchievements = {
     { id = 60935, name = "Tenured in the Timeways IV" },
     { id = 61079, name = "Heroic Legion Remix Raids" },
     { id = 42691, name = "Timeworn Keystone Enthusiast" },
+    { id = 61078, name = "Mythic Legion Remix Raids" },
     { id = 61337, name = "To Fel and Back" },
     { id = 61070, name = "Heroic Broken Isles World Quests IV" },
     { id = 42690, name = "Timeworn Keystone Hero" },
@@ -140,9 +141,8 @@ local cosmeticsAchievements = {
     { id = 42630, name = "Val'Sharah" },
     { id = 42582, name = "Stormheim" },
     { id = 42666, name = "The Broken Shore PH3" },
-    { id = 42549, name = "Argus PH4" },
-    { id = 42583, name = "Mythic: Antorus the Burning Throne PH4" },
-    { id = 61078, name = "Mythic Legion Remix Raids PH4" },
+    { id = 42549, name = "Argus" },
+    { id = 42583, name = "Mythic: Antorus the Burning Throne" },
     { id = 42319, name = "Azsuna" },
     { id = 42541, name = "Highmountain" }
 }
@@ -178,14 +178,14 @@ for i, ach in ipairs(cosmeticsAchievements) do
 end
 
 local cosmeticsPetsLabel = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-cosmeticsPetsLabel:SetPoint("TOPLEFT", cosmeticsAchievementTitles[13], "BOTTOMLEFT", 0, -10)
+cosmeticsPetsLabel:SetPoint("TOPLEFT", cosmeticsAchievementTitles[14], "BOTTOMLEFT", 0, -10) -- Adjusted to index 14
 cosmeticsPetsLabel:SetJustifyH("LEFT")
 cosmeticsPetsLabel:SetText("Pets")
 cosmeticsPetsLabel:Hide()
 
-for i = 14, #cosmeticsAchievements do
+for i = 15, #cosmeticsAchievements do -- Adjusted to start from index 15
     cosmeticsAchievementTitles[i]:ClearAllPoints()
-    cosmeticsAchievementTitles[i]:SetPoint("TOPLEFT", i == 14 and cosmeticsPetsLabel or cosmeticsAchievementTitles[i - 1], "BOTTOMLEFT", 0, -10)
+    cosmeticsAchievementTitles[i]:SetPoint("TOPLEFT", i == 15 and cosmeticsPetsLabel or cosmeticsAchievementTitles[i - 1], "BOTTOMLEFT", 0, -10)
 end
 
 -- Infinite Power Tab
