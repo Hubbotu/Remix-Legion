@@ -48,6 +48,22 @@ local L = {
         ["Threads"] = "|cffFFFFFFFils:|r",
         ["Infinite Power"] = "Pouvoir infini",
     },
+    ["deDE"] = {
+        ["Threads"] = "|cffFFFFFFFäden:|r",
+        ["Infinite Power"] = "Ewige Macht",
+    },
+    ["esES"] = {
+        ["Threads"] = "|cffFFFFFFHilos:|r",
+        ["Infinite Power"] = "Poder infinito",
+    },
+    ["zhCN"] = {
+        ["Threads"] = "|cffFFFFFF线程:|r",
+        ["Infinite Power"] = "永恒能量",
+    },
+    ["zhTW"] = {
+        ["Threads"] = "|cffFFFFFF線程:|r",
+        ["Infinite Power"] = "恆龍之力",
+    },
 }
 
 TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tooltip)
