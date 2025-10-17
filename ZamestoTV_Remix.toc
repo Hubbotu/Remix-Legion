@@ -21,8 +21,8 @@ embeds.xml
 Localization/ruRU.lua
 Localization/enUS.lua
 
-LevelUP.lua
-Boost.lua
+
+
 handler.lua
 config.lua
 gold.lua
@@ -34,3 +34,4 @@ Tmog.lua
 AScrap.lua
 TestWQuest.lua
 FremeAch.lua
+HideVendor.lua
