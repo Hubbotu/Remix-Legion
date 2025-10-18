@@ -1,6 +1,8 @@
 local addonName, addon = ...
 
--- Main Button
+---------------------------------------------------------
+-- MAIN BUTTON
+---------------------------------------------------------
 local remixButton = CreateFrame("Button", "RemixButton", UIParent, "UIPanelButtonTemplate")
 remixButton:SetSize(80, 22)
 remixButton:SetText("Remix")
@@ -11,7 +13,9 @@ remixButton:SetUserPlaced(true)
 remixButton:SetScript("OnDragStart", function(self) self:StartMoving() end)
 remixButton:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
 
--- Main Frame
+---------------------------------------------------------
+-- MAIN FRAME
+---------------------------------------------------------
 local mainFrame = CreateFrame("Frame", "RemixFrame", UIParent, "BasicFrameTemplateWithInset")
 mainFrame:SetSize(400, 600)
 mainFrame:SetPoint("CENTER")
@@ -22,21 +26,28 @@ mainFrame:SetUserPlaced(true)
 mainFrame:SetScript("OnDragStart", function(self) self:StartMoving() end)
 mainFrame:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
 
--- Content Frame
+---------------------------------------------------------
+-- CONTENT FRAME
+---------------------------------------------------------
 local contentFrame = CreateFrame("Frame", nil, mainFrame)
 contentFrame:SetPoint("TOPLEFT", mainFrame, "TOPLEFT", 10, -30)
 contentFrame:SetPoint("BOTTOMRIGHT", mainFrame, "BOTTOMRIGHT", -10, 10)
 
--- Tabs
+---------------------------------------------------------
+-- TABS
+---------------------------------------------------------
 local tabs = {}
 local tabContent = {
-    { name = "Cosmetics", text = "" },
+    { name = "General", text = "" },
     { name = "Infinite Power", text = "" },
     { name = "Experience", text = "" },
-    { name = "General", text = "" }
+    { name = "Cosmetics", text = "" },
+    { name = "Feats", text = "" }
 }
 
--- General Tab
+---------------------------------------------------------
+-- GENERAL TAB
+---------------------------------------------------------
 local generalTitle = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 generalTitle:SetFont("Fonts\\FRIZQT__.TTF", 20)
 generalTitle:SetPoint("TOP", contentFrame, "TOP", 0, -20)
@@ -74,26 +85,27 @@ generalPhasesTitle:SetJustifyH("CENTER")
 generalPhasesTitle:SetText("Phases")
 generalPhasesTitle:Hide()
 
--- Phase Timers
 local phaseData = {
-    { name = "Phase 1 - Launch", startDate = 1759891200 }, -- October 8, 2025 00:00 EEST
-    { name = "Phase 2 - Rise of the Nightfallen", startDate = 1761091200 }, -- October 22, 2025 00:00 EEST
-    { name = "Phase 3 - Legionfall", startDate = 1762291200 }, -- November 5, 2025 00:00 EEST
-    { name = "Phase 4 - Argus Eternal", startDate = 1763491200 }, -- November 19, 2025 00:00 EEST
-    { name = "Phase 5 - Infinite Echoes", startDate = 1765065600 } -- December 10, 2025 00:00 EEST
+    { name = "Phase 1 - Launch", startDate = 1759891200 },
+    { name = "Phase 2 - Rise of the Nightfallen", startDate = 1761091200 },
+    { name = "Phase 3 - Legionfall", startDate = 1762291200 },
+    { name = "Phase 4 - Argus Eternal", startDate = 1763491200 },
+    { name = "Phase 5 - Infinite Echoes", startDate = 1765065600 }
 }
 
 local generalPhaseTexts = {}
 for i = 1, 5 do
     local phaseText = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    phaseText:SetPoint("TOPLEFT", generalPhasesTitle, "BOTTOMLEFT", -155, -10 - (i - 1) * 22) -- x=25, y=-226, -248, -270, -292, -314
+    phaseText:SetPoint("TOPLEFT", generalPhasesTitle, "BOTTOMLEFT", -155, -10 - (i - 1) * 22)
     phaseText:SetJustifyH("LEFT")
     phaseText:SetWidth(360)
     phaseText:Hide()
     generalPhaseTexts[i] = phaseText
 end
 
--- Experience Tab
+---------------------------------------------------------
+-- EXPERIENCE TAB
+---------------------------------------------------------
 local experienceTitle = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 experienceTitle:SetFont("Fonts\\FRIZQT__.TTF", 20)
 experienceTitle:SetPoint("TOP", contentFrame, "TOP", 0, -20)
@@ -107,7 +119,40 @@ experienceDescription:SetJustifyH("CENTER")
 experienceDescription:SetText("Experience Bonus applies to 'This perfect relic resonates with\nyour Warband, permanently increasing all experience gains\nin Legion Remix by 10%'.")
 experienceDescription:Hide()
 
--- Cosmetics Tab
+local sharedAchievements = {
+    { id = 42586, name = "Campaign: Suramar" },
+    { id = 42317, name = "Campaign: Azsuna" },
+    { id = 42596, name = "Campaign: Stormheim" },
+    { id = 42617, name = "Campaign: Val'Sharah" },
+    { id = 42552, name = "Campaign: Highmountain" }
+}
+
+local experienceAchievementTitles = {}
+local experienceLinkButtons = {}
+for i, ach in ipairs(sharedAchievements) do
+    local prev = i == 1 and experienceDescription or experienceAchievementTitles[i - 1]
+    local title = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    title:SetPoint("TOPLEFT", prev, "BOTTOMLEFT", 0, -10)
+    title:SetJustifyH("LEFT")
+    title:SetWidth(300)
+    title:Hide()
+    experienceAchievementTitles[i] = title
+
+    local linkBtn = CreateFrame("Button", nil, contentFrame, "UIPanelButtonTemplate")
+    linkBtn:SetSize(60, 22)
+    linkBtn:SetText("Link")
+    linkBtn:SetPoint("LEFT", title, "RIGHT", 5, 0)
+    linkBtn:SetScript("OnClick", function()
+        if not AchievementFrame then AchievementFrame_LoadUI() end
+        if AchievementFrame then OpenAchievementFrameToAchievement(ach.id) end
+    end)
+    linkBtn:Hide()
+    experienceLinkButtons[i] = linkBtn
+end
+
+---------------------------------------------------------
+-- COSMETICS TAB
+---------------------------------------------------------
 local cosmeticsTitle = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 cosmeticsTitle:SetFont("Fonts\\FRIZQT__.TTF", 20)
 cosmeticsTitle:SetPoint("TOP", contentFrame, "TOP", 0, -20)
@@ -127,7 +172,6 @@ cosmeticsTransmogsLabel:SetJustifyH("LEFT")
 cosmeticsTransmogsLabel:SetText("Transmogs")
 cosmeticsTransmogsLabel:Hide()
 
--- Cosmetics Achievements
 local cosmeticsAchievements = {
     { id = 42301, name = "Timerunner" },
     { id = 60935, name = "Tenured in the Timeways IV" },
@@ -150,25 +194,25 @@ local cosmeticsAchievements = {
 local cosmeticsAchievementTitles = {}
 local cosmeticsLinkButtons = {}
 for i, ach in ipairs(cosmeticsAchievements) do
-    local prevElement
+    local prev
     if i == 1 then
-        prevElement = cosmeticsTitlesLabel
+        prev = cosmeticsTitlesLabel
     elseif i == 5 then
-        prevElement = cosmeticsTransmogsLabel
+        prev = cosmeticsTransmogsLabel
     else
-        prevElement = cosmeticsAchievementTitles[i - 1]
+        prev = cosmeticsAchievementTitles[i - 1]
     end
-    local achTitle = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    achTitle:SetPoint("TOPLEFT", prevElement, "BOTTOMLEFT", 0, -10)
-    achTitle:SetJustifyH("LEFT")
-    achTitle:SetWidth(contentFrame:GetWidth() - 75)
-    achTitle:Hide()
-    cosmeticsAchievementTitles[i] = achTitle
+    local title = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    title:SetPoint("TOPLEFT", prev, "BOTTOMLEFT", 0, -10)
+    title:SetJustifyH("LEFT")
+    title:SetWidth(300)
+    title:Hide()
+    cosmeticsAchievementTitles[i] = title
 
     local linkBtn = CreateFrame("Button", nil, contentFrame, "UIPanelButtonTemplate")
     linkBtn:SetSize(60, 22)
     linkBtn:SetText("Link")
-    linkBtn:SetPoint("LEFT", achTitle, "RIGHT", 5, 0)
+    linkBtn:SetPoint("LEFT", title, "RIGHT", 5, 0)
     linkBtn:SetScript("OnClick", function()
         if not AchievementFrame then AchievementFrame_LoadUI() end
         if AchievementFrame then OpenAchievementFrameToAchievement(ach.id) end
@@ -178,17 +222,134 @@ for i, ach in ipairs(cosmeticsAchievements) do
 end
 
 local cosmeticsPetsLabel = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-cosmeticsPetsLabel:SetPoint("TOPLEFT", cosmeticsAchievementTitles[14], "BOTTOMLEFT", 0, -10) -- Adjusted to index 14
+cosmeticsPetsLabel:SetPoint("TOPLEFT", cosmeticsAchievementTitles[14], "BOTTOMLEFT", 0, -10)
 cosmeticsPetsLabel:SetJustifyH("LEFT")
 cosmeticsPetsLabel:SetText("Pets")
 cosmeticsPetsLabel:Hide()
 
-for i = 15, #cosmeticsAchievements do -- Adjusted to start from index 15
+for i = 15, #cosmeticsAchievements do
     cosmeticsAchievementTitles[i]:ClearAllPoints()
     cosmeticsAchievementTitles[i]:SetPoint("TOPLEFT", i == 15 and cosmeticsPetsLabel or cosmeticsAchievementTitles[i - 1], "BOTTOMLEFT", 0, -10)
 end
 
+---------------------------------------------------------
+-- FEATS TAB (flush to left edge horizontally)
+---------------------------------------------------------
+local featsTitle = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+featsTitle:SetFont("Fonts\\FRIZQT__.TTF", 20)
+featsTitle:SetPoint("TOP", contentFrame, "TOP", 0, -20)
+featsTitle:SetJustifyH("CENTER")
+featsTitle:SetText("Myth+ Portals")
+featsTitle:Hide()
+
+local featsDescription = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+featsDescription:SetPoint("TOP", featsTitle, "BOTTOM", 0, -10)
+featsDescription:SetJustifyH("CENTER")
+featsDescription:SetText("To get the achievements listed below,\ncomplete the Myth+ at level 20+.")
+featsDescription:Hide()
+
+local featsStrengthTitle = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+featsStrengthTitle:SetFont("Fonts\\FRIZQT__.TTF", 20)
+featsStrengthTitle:SetPoint("TOP", featsDescription, "BOTTOM", 0, -175)
+featsStrengthTitle:SetJustifyH("CENTER")
+featsStrengthTitle:SetText("Feats of Strength")
+featsStrengthTitle:Hide()
+
+local featsStrengthDescription = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+featsStrengthDescription:SetPoint("TOP", featsStrengthTitle, "BOTTOM", 0, -10)
+featsStrengthDescription:SetJustifyH("CENTER")
+featsStrengthDescription:SetText("Complete Myth+ at level 49+ or level up\nan artifact to level 999.")
+featsStrengthDescription:Hide()
+
+local featsUnknownDescription = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+featsUnknownDescription:SetPoint("TOP", featsStrengthDescription, "BOTTOM", 0, -60)
+featsUnknownDescription:SetJustifyH("CENTER")
+featsUnknownDescription:SetText("Unknown how to get the achievement.")
+featsUnknownDescription:Hide()
+
+local featsAchievements = {
+    { id = 16659, name = "Keystone Hero: Halls of Valor" },
+    { id = 17850, name = "Keystone Hero: Neltharion's Lair" },
+    { id = 19084, name = "Keystone Hero: Black Rook Hold" },
+    { id = 19085, name = "Keystone Hero: Darkheart Thicket" },
+    { id = 16658, name = "Keystone Hero: Court of Stars" },
+    { id = 15692, name = "Keystone Hero: Return to Karazhan" },
+    { id = 61339, name = "Putting the Finite in Infinite" },
+    { id = 42807, name = "Cloudy With a Chance of Infernals" }
+}
+
+local featsAchievementTitles = {}
+local featsLinkButtons = {}
+
+-- Group 1: 6 Myth+ achievements
+for i = 1, 6 do
+    local prev = i == 1 and featsDescription or featsAchievementTitles[i - 1]
+    local title = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    title:SetPoint("TOPLEFT", contentFrame, "TOPLEFT", 0, -110 - (i - 1) * 25)
+    title:SetJustifyH("LEFT")
+    title:SetWidth(300)
+    title:Hide()
+    featsAchievementTitles[i] = title
+
+    local linkBtn = CreateFrame("Button", nil, contentFrame, "UIPanelButtonTemplate")
+    linkBtn:SetSize(60, 22)
+    linkBtn:SetText("Link")
+    linkBtn:SetPoint("LEFT", title, "RIGHT", 5, 0)
+    linkBtn:SetScript("OnClick", function()
+        if not AchievementFrame then AchievementFrame_LoadUI() end
+        if AchievementFrame then OpenAchievementFrameToAchievement(featsAchievements[i].id) end
+    end)
+    linkBtn:Hide()
+    featsLinkButtons[i] = linkBtn
+end
+
+-- Group 2: "Putting the Finite in Infinite"
+local title7 = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+title7:SetPoint("TOPLEFT", contentFrame, "TOPLEFT", 0, -310)
+title7:SetJustifyH("LEFT")
+title7:SetWidth(300)
+title7:Hide()
+featsAchievementTitles[7] = title7
+
+local linkBtn7 = CreateFrame("Button", nil, contentFrame, "UIPanelButtonTemplate")
+linkBtn7:SetSize(60, 22)
+linkBtn7:SetText("Link")
+linkBtn7:SetPoint("LEFT", title7, "RIGHT", 5, 0)
+linkBtn7:SetScript("OnClick", function()
+    if not AchievementFrame then AchievementFrame_LoadUI() end
+    if AchievementFrame then OpenAchievementFrameToAchievement(featsAchievements[7].id) end
+end)
+linkBtn7:Hide()
+featsLinkButtons[7] = linkBtn7
+
+-- Group 3: "Cloudy With a Chance of Infernals"
+local title8 = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+title8:SetPoint("TOPLEFT", contentFrame, "TOPLEFT", 0, -380)
+title8:SetJustifyH("LEFT")
+title8:SetWidth(300)
+title8:Hide()
+featsAchievementTitles[8] = title8
+
+local linkBtn8 = CreateFrame("Button", nil, contentFrame, "UIPanelButtonTemplate")
+linkBtn8:SetSize(60, 22)
+linkBtn8:SetText("Link")
+linkBtn8:SetPoint("LEFT", title8, "RIGHT", 5, 0)
+linkBtn8:SetScript("OnClick", function()
+    if not AchievementFrame then AchievementFrame_LoadUI() end
+    if AchievementFrame then OpenAchievementFrameToAchievement(featsAchievements[8].id) end
+end)
+linkBtn8:Hide()
+featsLinkButtons[8] = linkBtn8
+
+---------------------------------------------------------
+-- INFINITE POWER + EVENT + TAB HANDLING (UNCHANGED)
+---------------------------------------------------------
+-- (Your Infinite Power, tab switching, and slash command logic remains unchanged.)
+---------------------------------------------------------
+
+--------------------------------------------------------- 
 -- Infinite Power Tab
+--------------------------------------------------------- 
 local infinitePowerTitle = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 infinitePowerTitle:SetFont("Fonts\\FRIZQT__.TTF", 20)
 infinitePowerTitle:SetPoint("TOP", contentFrame, "TOP", 0, -20)
@@ -353,38 +514,6 @@ for i, btn in ipairs(phaseButtons) do
     btn:SetScript("OnClick", function() ShowPhase(i) end)
 end
 
--- Experience Achievements
-local sharedAchievements = {
-    { id = 42586, name = "Campaign: Suramar" },
-    { id = 42317, name = "Campaign: Azsuna" },
-    { id = 42596, name = "Campaign: Stormheim" },
-    { id = 42617, name = "Campaign: Val'Sharah" },
-    { id = 42552, name = "Campaign: Highmountain" }
-}
-
-local experienceAchievementTitles = {}
-local experienceLinkButtons = {}
-for i, ach in ipairs(sharedAchievements) do
-    local prevElement = i == 1 and experienceDescription or experienceAchievementTitles[i - 1]
-    local achTitle = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    achTitle:SetPoint("TOPLEFT", prevElement, "BOTTOMLEFT", 0, -10)
-    achTitle:SetJustifyH("LEFT")
-    achTitle:SetWidth(300)
-    achTitle:Hide()
-    experienceAchievementTitles[i] = achTitle
-
-    local linkBtn = CreateFrame("Button", nil, contentFrame, "UIPanelButtonTemplate")
-    linkBtn:SetSize(60, 22)
-    linkBtn:SetText("Link")
-    linkBtn:SetPoint("TOPLEFT", achTitle, "TOPRIGHT", 5, 0)
-    linkBtn:SetScript("OnClick", function()
-        if not AchievementFrame then AchievementFrame_LoadUI() end
-        if AchievementFrame then OpenAchievementFrameToAchievement(ach.id) end
-    end)
-    linkBtn:Hide()
-    experienceLinkButtons[i] = linkBtn
-end
-
 -- Update Functions
 local function UpdateCurrencyDisplay()
     local currencyInfo = C_CurrencyInfo.GetCurrencyInfo(3292)
@@ -412,6 +541,20 @@ end
 local function UpdateExperienceAchievementDisplay()
     for i, ach in ipairs(sharedAchievements) do
         local title = experienceAchievementTitles[i]
+        local id, name, _, completed = GetAchievementInfo(ach.id)
+        if name then
+            title:SetText(name)
+            if completed then title:SetTextColor(0, 1, 0) else title:SetTextColor(1, 0, 0) end
+        else
+            title:SetText(ach.name .. " (Unknown)")
+            title:SetTextColor(1, 0, 0)
+        end
+    end
+end
+
+local function UpdateFeatsAchievementDisplay()
+    for i, ach in ipairs(featsAchievements) do
+        local title = featsAchievementTitles[i]
         local id, name, _, completed = GetAchievementInfo(ach.id)
         if name then
             title:SetText(name)
@@ -471,7 +614,7 @@ for i, tabInfo in ipairs(tabContent) do
     local tabButton = CreateFrame("Button", "RemixTab" .. i, mainFrame, "UIPanelButtonTemplate")
     tabButton:SetSize(80, 22)
     tabButton:SetText(tabInfo.name)
-    tabButton:SetPoint("TOPRIGHT", mainFrame, "TOPRIGHT", -30 - (i - 1) * 85, -5)
+    tabButton:SetPoint("TOPLEFT", mainFrame, "TOPRIGHT", 5, -30 - (i - 1) * 30)
     tabButton:SetScript("OnClick", function()
         -- Hide all tab content
         generalTitle:Hide()
@@ -487,12 +630,19 @@ for i, tabInfo in ipairs(tabContent) do
         cosmeticsTitlesLabel:Hide()
         cosmeticsTransmogsLabel:Hide()
         cosmeticsPetsLabel:Hide()
+        featsTitle:Hide()
+        featsDescription:Hide()
+        featsStrengthTitle:Hide()
+        featsStrengthDescription:Hide()
+        featsUnknownDescription:Hide()
         infinitePowerTitle:Hide()
         infinitePowerContent:Hide()
         for _, title in ipairs(cosmeticsAchievementTitles) do title:Hide() end
         for _, btn in ipairs(cosmeticsLinkButtons) do btn:Hide() end
         for _, title in ipairs(experienceAchievementTitles) do title:Hide() end
         for _, btn in ipairs(experienceLinkButtons) do btn:Hide() end
+        for _, title in ipairs(featsAchievementTitles) do title:Hide() end
+        for _, btn in ipairs(featsLinkButtons) do btn:Hide() end
         for j = 1, 4 do
             phaseButtons[j]:Hide()
             infinitePowerPhaseLabels[j]:Hide()
@@ -502,14 +652,17 @@ for i, tabInfo in ipairs(tabContent) do
         scrollFrame:Hide()
 
         -- Show selected tab content
-        if i == 1 then -- Cosmetics
-            cosmeticsTitle:Show()
-            cosmeticsTitlesLabel:Show()
-            cosmeticsTransmogsLabel:Show()
-            cosmeticsPetsLabel:Show()
-            for _, title in ipairs(cosmeticsAchievementTitles) do title:Show() end
-            for _, btn in ipairs(cosmeticsLinkButtons) do btn:Show() end
-            UpdateCosmeticsAchievementDisplay()
+        if i == 1 then -- General
+            generalTitle:Show()
+            generalDescription:Show()
+            generalCurrency:Show()
+            generalExperienceBonus:Show()
+            generalAchievementProgress:Show()
+            generalPhasesTitle:Show()
+            for _, phaseText in ipairs(generalPhaseTexts) do phaseText:Show() end
+            UpdateCurrencyDisplay()
+            UpdateGeneralAchievementProgress()
+            UpdatePhaseTimers()
         elseif i == 2 then -- Infinite Power
             infinitePowerTitle:Show()
             infinitePowerContent:Show()
@@ -522,17 +675,23 @@ for i, tabInfo in ipairs(tabContent) do
             for _, title in ipairs(experienceAchievementTitles) do title:Show() end
             for _, btn in ipairs(experienceLinkButtons) do btn:Show() end
             UpdateExperienceAchievementDisplay()
-        elseif i == 4 then -- General
-            generalTitle:Show()
-            generalDescription:Show()
-            generalCurrency:Show()
-            generalExperienceBonus:Show()
-            generalAchievementProgress:Show()
-            generalPhasesTitle:Show()
-            for _, phaseText in ipairs(generalPhaseTexts) do phaseText:Show() end
-            UpdateCurrencyDisplay()
-            UpdateGeneralAchievementProgress()
-            UpdatePhaseTimers()
+        elseif i == 4 then -- Cosmetics
+            cosmeticsTitle:Show()
+            cosmeticsTitlesLabel:Show()
+            cosmeticsTransmogsLabel:Show()
+            cosmeticsPetsLabel:Show()
+            for _, title in ipairs(cosmeticsAchievementTitles) do title:Show() end
+            for _, btn in ipairs(cosmeticsLinkButtons) do btn:Show() end
+            UpdateCosmeticsAchievementDisplay()
+        elseif i == 5 then -- Feats
+            featsTitle:Show()
+            featsDescription:Show()
+            featsStrengthTitle:Show()
+            featsStrengthDescription:Show()
+            featsUnknownDescription:Show()
+            for _, title in ipairs(featsAchievementTitles) do title:Show() end
+            for _, btn in ipairs(featsLinkButtons) do btn:Show() end
+            UpdateFeatsAchievementDisplay()
         end
 
         -- Update tab button states
@@ -554,13 +713,14 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
     if event == "ADDON_LOADED" and arg1 == addonName then
         RemixButtonState = RemixButtonState or { isShown = true }
         remixButton:SetShown(RemixButtonState.isShown)
-    elseif event == "CURRENCY_DISPLAY_UPDATE" and not tabs[4]:IsEnabled() then
+    elseif event == "CURRENCY_DISPLAY_UPDATE" and not tabs[1]:IsEnabled() then
         UpdateCurrencyDisplay()
     elseif event == "ACHIEVEMENT_EARNED" then
         if not tabs[3]:IsEnabled() then UpdateExperienceAchievementDisplay() end
-        if not tabs[1]:IsEnabled() then UpdateCosmeticsAchievementDisplay() end
+        if not tabs[4]:IsEnabled() then UpdateCosmeticsAchievementDisplay() end
+        if not tabs[5]:IsEnabled() then UpdateFeatsAchievementDisplay() end
         if not tabs[2]:IsEnabled() then UpdateInfinitePowerAchievementDisplay() end
-        if not tabs[4]:IsEnabled() then UpdateGeneralAchievementProgress() end
+        if not tabs[1]:IsEnabled() then UpdateGeneralAchievementProgress() end
     end
 end)
 
@@ -568,7 +728,7 @@ mainFrame:RegisterEvent("CURRENCY_DISPLAY_UPDATE")
 mainFrame:RegisterEvent("ACHIEVEMENT_EARNED")
 
 mainFrame:SetScript("OnShow", function()
-    if not tabs[4]:IsEnabled() then
+    if not tabs[1]:IsEnabled() then
         generalTitle:Show()
         generalDescription:Show()
         generalCurrency:Show()
@@ -585,7 +745,7 @@ mainFrame:SetScript("OnShow", function()
         for _, title in ipairs(experienceAchievementTitles) do title:Show() end
         for _, btn in ipairs(experienceLinkButtons) do btn:Show() end
         UpdateExperienceAchievementDisplay()
-    elseif not tabs[1]:IsEnabled() then
+    elseif not tabs[4]:IsEnabled() then
         cosmeticsTitle:Show()
         cosmeticsTitlesLabel:Show()
         cosmeticsTransmogsLabel:Show()
@@ -593,6 +753,15 @@ mainFrame:SetScript("OnShow", function()
         for _, title in ipairs(cosmeticsAchievementTitles) do title:Show() end
         for _, btn in ipairs(cosmeticsLinkButtons) do btn:Show() end
         UpdateCosmeticsAchievementDisplay()
+    elseif not tabs[5]:IsEnabled() then
+        featsTitle:Show()
+        featsDescription:Show()
+        featsStrengthTitle:Show()
+        featsStrengthDescription:Show()
+        featsUnknownDescription:Show()
+        for _, title in ipairs(featsAchievementTitles) do title:Show() end
+        for _, btn in ipairs(featsLinkButtons) do btn:Show() end
+        UpdateFeatsAchievementDisplay()
     elseif not tabs[2]:IsEnabled() then
         infinitePowerTitle:Show()
         infinitePowerContent:Show()

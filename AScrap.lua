@@ -1,19 +1,18 @@
 AutoScrapDB = AutoScrapDB or {}
 
 local DEFAULTS = {
-  itemLevel = 578,
   addCount = 9,
-  Rarity = { ["2"] = true, ["3"] = true, ["4"] = false },
   Bags = { false, false, false, false, false },
   ItemStat = {
-    ITEM_MOD_CRIT_RATING_SHORT = true,
-    ITEM_MOD_AVOIDANCE_SHORT = true,
-    ITEM_MOD_CR_LIFESTEAL_SHORT = true,
-    ITEM_MOD_CR_SPEED_SHORT = true,
     ITEM_MOD_HASTE_RATING_SHORT = true,
     ITEM_MOD_MASTERY_RATING_SHORT = true,
     ITEM_MOD_VERSATILITY = true,
+    ITEM_MOD_CRIT_RATING_SHORT = true,
+    ITEM_MOD_CR_LIFESTEAL_SHORT = true,
+    ITEM_MOD_CR_SPEED_SHORT = true,
+    ITEM_MOD_CR_AVOIDANCE_SHORT = true,
   },
+  equippedLower = true,
 }
 
 local function InitDB()
@@ -31,80 +30,49 @@ local function InitDB()
   end
 end
 
+-- API references
 local GetContainerNumSlots = C_Container.GetContainerNumSlots
-local GetContainerItemLink = C_Container.GetContainerItemLink
 local GetContainerItemInfo = C_Container.GetContainerItemInfo
 local UseContainerItem = C_Container.UseContainerItem
 local GetItemInfo = GetItemInfo
 local GetItemStats = C_Item.GetItemStats
 local GetDetailedItemLevelInfo = GetDetailedItemLevelInfo
+local GetInventoryItemLink = GetInventoryItemLink
 local GetItemClassInfo = GetItemClassInfo
 
-local itemTypeArmor = select(1, GetItemClassInfo(4))
-
--------------------------------------------------------------
--- Equipment Slot Mapping
--------------------------------------------------------------
-local EquipSlots = {
-  INVTYPE_HEAD = {INVSLOT_HEAD},
-  INVTYPE_NECK = {INVSLOT_NECK},
-  INVTYPE_SHOULDER = {INVSLOT_SHOULDER},
-  INVTYPE_BODY = {INVSLOT_BODY},
-  INVTYPE_CHEST = {INVSLOT_CHEST},
-  INVTYPE_ROBE = {INVSLOT_CHEST},
-  INVTYPE_WAIST = {INVSLOT_WAIST},
-  INVTYPE_LEGS = {INVSLOT_LEGS},
-  INVTYPE_FEET = {INVSLOT_FEET},
-  INVTYPE_WRIST = {INVSLOT_WRIST},
-  INVTYPE_HAND = {INVSLOT_HAND},
-  INVTYPE_HANDS = {INVSLOT_HAND},
-  INVTYPE_FINGER = {INVSLOT_FINGER1, INVSLOT_FINGER2},
-  INVTYPE_TRINKET = {INVSLOT_TRINKET1, INVSLOT_TRINKET2},
-  INVTYPE_CLOAK = {INVSLOT_BACK},
-  INVTYPE_WEAPON = {INVSLOT_MAINHAND, INVSLOT_OFFHAND},
-  INVTYPE_SHIELD = {INVSLOT_OFFHAND},
-  INVTYPE_2HWEAPON = {INVSLOT_MAINHAND},
-  INVTYPE_WEAPONMAINHAND = {INVSLOT_MAINHAND},
-  INVTYPE_WEAPONOFFHAND = {INVSLOT_OFFHAND},
-  INVTYPE_HOLDABLE = {INVSLOT_OFFHAND},
-  INVTYPE_RANGED = {INVSLOT_RANGED},
-  INVTYPE_THROWN = {INVSLOT_RANGED},
-  INVTYPE_RANGEDRIGHT = {INVSLOT_RANGED},
-  INVTYPE_TABARD = {INVSLOT_TABARD},
+-- Only consider Armor items
+local itemTypes = {
+  [GetItemClassInfo(4)] = true,
 }
 
-local function IsLowerThanEquipped(bag, slot)
-  local itemLoc = ItemLocation:CreateFromBagAndSlot(bag, slot)
-  if not C_Item.DoesItemExist(itemLoc) then return false end
+------------------------------------------------------------
+-- Equipment slot mapping
+------------------------------------------------------------
+local itemEquipLocToSlot = {
+  INVTYPE_HEAD = { 1 },
+  INVTYPE_NECK = { 2 },
+  INVTYPE_SHOULDER = { 3 },
+  INVTYPE_BODY = { 4 },
+  INVTYPE_CHEST = { 5 },
+  INVTYPE_ROBE = { 5 },
+  INVTYPE_WAIST = { 6 },
+  INVTYPE_LEGS = { 7 },
+  INVTYPE_FEET = { 8 },
+  INVTYPE_WRIST = { 9 },
+  INVTYPE_HAND = { 10 },
+  INVTYPE_FINGER = { 11, 12 },
+  INVTYPE_TRINKET = { 13, 14 },
+  INVTYPE_WEAPON = { 16, 17 },
+  INVTYPE_SHIELD = { 17 },
+  INVTYPE_RANGED = { 16 },
+  INVTYPE_CLOAK = { 15 },
+  INVTYPE_2HWEAPON = { 16 },
+}
 
-  local ilvl = C_Item.GetCurrentItemLevel(itemLoc) or 0
-  local item = Item:CreateFromItemLocation(itemLoc)
-  local invType = item:GetInventoryTypeName()
-  if not invType then return false end
-
-  local slots = EquipSlots[invType]
-  if not slots or #slots == 0 then return false end
-
-  local lowestEquippedIlvl = math.huge
-  for _, eqSlot in ipairs(slots) do
-    local eqLoc = ItemLocation:CreateFromEquipmentSlot(eqSlot)
-    if C_Item.DoesItemExist(eqLoc) then
-      local eqIlvl = C_Item.GetCurrentItemLevel(eqLoc) or 0
-      if eqIlvl < lowestEquippedIlvl then
-        lowestEquippedIlvl = eqIlvl
-      end
-    end
-  end
-
-  if lowestEquippedIlvl == math.huge then
-    return false
-  end
-
-  return ilvl < lowestEquippedIlvl
-end
-
+------------------------------------------------------------
+-- Helpers
+------------------------------------------------------------
 local function ItemStatCheck(itemLink, cfg)
-  if not itemLink then return false end
   local stats = GetItemStats(itemLink) or {}
   for k, v in pairs(cfg.ItemStat) do
     if stats[k] and not v then
@@ -114,32 +82,64 @@ local function ItemStatCheck(itemLink, cfg)
   return true
 end
 
+local function ItemLevelEquippedHigher(itemEquipLoc, itemlevel, itemId)
+  if not itemEquipLocToSlot[itemEquipLoc] then return false end
+
+  local allHigher = false
+  for _, slot in pairs(itemEquipLocToSlot[itemEquipLoc]) do
+    local equippedItemLink = GetInventoryItemLink("player", slot)
+    if not equippedItemLink then return false end
+
+    local itemLevelEquipped = GetDetailedItemLevelInfo(equippedItemLink)
+    local equippedId = equippedItemLink:match("item:(%d+):")
+
+    if tostring(equippedId) == tostring(itemId) then
+      if itemLevelEquipped > itemlevel then return true end
+    end
+
+    if itemLevelEquipped > itemlevel then
+      allHigher = true
+    end
+  end
+
+  return allHigher
+end
+
+------------------------------------------------------------
+-- Core item filter
+------------------------------------------------------------
 local function ItemCheck(bag, slot, cfg)
-  local itemLink = GetContainerItemLink(bag, slot)
-  if not itemLink then return false end
   local itemInfo = GetContainerItemInfo(bag, slot)
   if not itemInfo or itemInfo.isLocked then return false end
 
-  local _, _, itemRarity, _, _, itemType = GetItemInfo(itemLink)
-  if not itemType or itemType ~= itemTypeArmor then return false end
+  local itemLink = itemInfo.hyperlink
+  if not itemLink then return false end
 
-  if not itemRarity or not cfg.Rarity[tostring(itemRarity)] then return false end
+  local _, _, _, _, _, itemType, _, _, itemEquipLoc = GetItemInfo(itemLink)
+  if not itemType or not itemTypes[itemType] then return false end
 
-  local itemLevel = GetDetailedItemLevelInfo(itemLink) or 0
-  if itemLevel <= 1 or itemLevel > cfg.itemLevel then return false end
+  local itemLevel = GetDetailedItemLevelInfo(itemLink)
+  local itemId = itemLink:match("item:(%d+):")
 
-  if not ItemStatCheck(itemLink, cfg) then return false end
+  if cfg.equippedLower and not ItemLevelEquippedHigher(itemEquipLoc, itemLevel, itemId) then
+    return false
+  end
 
-  if not IsLowerThanEquipped(bag, slot) then return false end
+  if not ItemStatCheck(itemLink, cfg) then
+    return false
+  end
 
   return true
 end
 
+------------------------------------------------------------
+-- Get next eligible item
+------------------------------------------------------------
 local function GetItemLocation(cfg)
   for bag = 0, 4 do
     if not cfg.Bags[bag + 1] then
-      local slots = GetContainerNumSlots(bag) or 0
-      for slot = 1, slots do
+      local numSlots = GetContainerNumSlots(bag) or 0
+      for slot = 1, numSlots do
         if ItemCheck(bag, slot, cfg) then
           return bag, slot
         end
@@ -149,18 +149,26 @@ local function GetItemLocation(cfg)
   return nil, nil
 end
 
+------------------------------------------------------------
+-- Move items
+------------------------------------------------------------
 local function MoveItems(cfg)
   if not ScrappingMachineFrame or not ScrappingMachineFrame:IsShown() then
     return false
   end
+
   for i = 1, cfg.addCount do
     local bag, slot = GetItemLocation(cfg)
     if not bag or not slot then return false end
     UseContainerItem(bag, slot)
   end
+
   return true
 end
 
+------------------------------------------------------------
+-- UI button setup
+------------------------------------------------------------
 local function CreateButton()
   local button = CreateFrame("Button", "AutoScrapButton", UIParent, "UIPanelButtonTemplate")
   button:SetSize(100, 24)
@@ -173,7 +181,7 @@ local function CreateButton()
 
   button:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-    GameTooltip:SetText("Add low-level items to the Scrapping.", 1, 1, 1, true)
+    GameTooltip:SetText("Add lower-level equipment to the Scrapping Machine.", 1, 1, 1, true)
     GameTooltip:Show()
   end)
   button:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -191,8 +199,8 @@ local function HookScrapFrame(button)
       button:Hide()
       return
     end
-    button:SetParent(ScrappingMachineFrame)
 
+    button:SetParent(ScrappingMachineFrame)
     local scrapBtn = ScrappingMachineFrame.ScrapButton
       or (ScrappingMachineFrame.ButtonFrame and ScrappingMachineFrame.ButtonFrame.ScrapButton)
 
@@ -219,6 +227,9 @@ local function HookScrapFrame(button)
   end
 end
 
+------------------------------------------------------------
+-- Addon initialization
+------------------------------------------------------------
 local evframe = CreateFrame("Frame")
 evframe:RegisterEvent("ADDON_LOADED")
 evframe:SetScript("OnEvent", function(self, event, name)
