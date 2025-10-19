@@ -341,12 +341,6 @@ end)
 linkBtn8:Hide()
 featsLinkButtons[8] = linkBtn8
 
----------------------------------------------------------
--- INFINITE POWER + EVENT + TAB HANDLING (UNCHANGED)
----------------------------------------------------------
--- (Your Infinite Power, tab switching, and slash command logic remains unchanged.)
----------------------------------------------------------
-
 --------------------------------------------------------- 
 -- Infinite Power Tab
 --------------------------------------------------------- 
@@ -387,7 +381,7 @@ end
 
 -- Infinite Power Achievements
 local infinitePowerAchievements = {
-    -- Phase 1 - Skies of Fire (1-26)
+    -- Phase 1 - Skies of Fire (1-27)
     { id = 42314, name = "Unlimited Power" },
     { id = 42315, name = "Unlimited Power II" },
     { id = 42505, name = "Unlimited Power III" },
@@ -414,17 +408,18 @@ local infinitePowerAchievements = {
     { id = 61076, name = "Broken Isles World Bosses" },
     { id = 60859, name = "The Emerald Nightmare" },
     { id = 60860, name = "Trial of Valor" },
-    -- Phase 2 - Rise of the Nightfallen (27-29)
+	{ id = 61075, name = "Heroic Legion Remix Raider" },
+    -- Phase 2 - Rise of the Nightfallen (28-30)
     { id = 42537, name = "Insurrection" },
     { id = 60854, name = "Heroic: Return to Karazhan" },
     { id = 60865, name = "The Nighthold" },
-    -- Phase 4 - Argus Eternal (30-34)
+    -- Phase 4 - Argus Eternal (31-35)
     { id = 60870, name = "Tomb of Sargeras" },
     { id = 42647, name = "Breaching the Tomb" },
     { id = 42673, name = "Defending the Broken Isles I" },
     { id = 42672, name = "Defending the Broken Isles II" },
     { id = 60850, name = "Heroic: Cathedral of Eternal Night" },
-    -- Phase 3 - Legionfall (35-42)
+    -- Phase 3 - Legionfall (36-41)
     { id = 42612, name = "You Are Now Prepared!" },
     { id = 42693, name = "Breaking the Legion I" },
     { id = 42696, name = "Greater Invasion Points I" },
@@ -432,26 +427,25 @@ local infinitePowerAchievements = {
     { id = 42320, name = "Legion Remix Dungeoneer" },
     { id = 60852, name = "Heroic: Seat of the Triumvirate" },
     { id = 60875, name = "Antorus, the Burning Throne" },
-    { id = 61075, name = "Heroic Legion Remix Raider" },
     { id = 61077, name = "Argus Invasion Point Bosses" }
 }
 
 local infinitePowerPhaseData = {
     {
         name = "Phase 1 - Skies of Fire",
-        achievements = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26 }
+        achievements = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27 }
     },
     {
         name = "Phase 2 - Rise of the Nightfallen",
-        achievements = { 27, 28, 29 }
+        achievements = { 28, 29, 30 }
     },
     {
         name = "Phase 3 - Legionfall",
-        achievements = { 35, 36, 37, 38, 39, 40, 41, 42 }
+        achievements = { 36, 37, 38, 39, 40, 41, 42, }
     },
     {
         name = "Phase 4 - Argus Eternal",
-        achievements = { 30, 31, 32, 33, 34 }
+        achievements = { 31, 32, 33, 34, 35 }
     }
 }
 
@@ -484,7 +478,12 @@ for phaseIndex, phase in ipairs(infinitePowerPhaseData) do
         local linkBtn = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
         linkBtn:SetSize(60, 22)
         linkBtn:SetText("Link")
-        linkBtn:SetPoint("TOPLEFT", achTitle, "TOPRIGHT", 5, 0)
+        -- Adjust x offset for Phase 1 (Skies of Fire) to move 7 pixels left
+        if phaseIndex == 1 then
+            linkBtn:SetPoint("TOPLEFT", achTitle, "TOPRIGHT", -6, 0)
+        else
+            linkBtn:SetPoint("TOPLEFT", achTitle, "TOPRIGHT", 5, 0)
+        end
         linkBtn:SetScript("OnClick", function()
             if not AchievementFrame then AchievementFrame_LoadUI() end
             if AchievementFrame then OpenAchievementFrameToAchievement(ach.id) end
