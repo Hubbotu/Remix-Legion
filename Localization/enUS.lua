@@ -269,11 +269,11 @@ L["Lady Rivantas Note"] = "Contains 60-80 |cFFFFFFFFBronze|r and reputation toke
 
 -- Azsuna (Treasure)
 L["Disputed Treasure"] = "|cFFFFFFFFDisputed Treasure|r"
-L["Disputed Treasure Note"] = "Contains 50-55 |cFFFFFFFFBronze|r"
+L["Disputed Treasure Note"] = "Contains |cFFFFFFFFBronze|r or token for rep."
 L["Trecherous Stallions"] = "|cFFFFFFFFTrecherous Stallions|r"
-L["Trecherous Stallions Note"] = "Contains 50-55 |cFFFFFFFFBronze|r"
+L["Trecherous Stallions Note"] = "Contains |cFFFFFFFFBronze|r or token for rep."
 L["Seemingly Unguarded Treasure"] = "|cFFFFFFFFSeemingly Unguarded Treasure|r"
-L["Seemingly Unguarded Treasure Note"] = "Contains 50-55 |cFFFFFFFFBronze|r"
+L["Seemingly Unguarded Treasure Note"] = "Contains |cFFFFFFFFBronze|r or token for rep."
 
 -- Valsharah (Treasure)
 L["Unguarded Thistlemaw Treasure"] = "|cFFFFFFFFUnguarded Thistlemaw Treasure|r"
