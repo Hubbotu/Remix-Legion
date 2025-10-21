@@ -409,25 +409,29 @@ local infinitePowerAchievements = {
     { id = 60859, name = "The Emerald Nightmare" },
     { id = 60860, name = "Trial of Valor" },
 	{ id = 61075, name = "Heroic Legion Remix Raider" },
-    -- Phase 2 - Rise of the Nightfallen (28-30)
+    -- Phase 2 - Rise of the Nightfallen (28-31)
     { id = 42537, name = "Insurrection" },
     { id = 60854, name = "Heroic: Return to Karazhan" },
+    { id = 60855, name = "Heroic: Return to Karazhan" },	
     { id = 60865, name = "The Nighthold" },
-    -- Phase 4 - Argus Eternal (31-35)
+    -- Phase 3 - Legionfall (32-37)	
     { id = 60870, name = "Tomb of Sargeras" },
     { id = 42647, name = "Breaching the Tomb" },
     { id = 42673, name = "Defending the Broken Isles I" },
     { id = 42672, name = "Defending the Broken Isles II" },
     { id = 60850, name = "Heroic: Cathedral of Eternal Night" },
-    -- Phase 3 - Legionfall (36-41)
+    { id = 61080, name = "Broken Shore World Bosses" },	
+    -- Phase 4 - Argus Eternal (38-47)
     { id = 42612, name = "You Are Now Prepared!" },
     { id = 42693, name = "Breaking the Legion I" },
     { id = 42696, name = "Greater Invasion Points I" },
     { id = 42697, name = "Greater Invasion Points II" },
+    { id = 60852, name = "Heroic: Seat of the Triumvirate" },	
     { id = 42320, name = "Legion Remix Dungeoneer" },
-    { id = 60852, name = "Heroic: Seat of the Triumvirate" },
+    { id = 61073, name = "Heroic Legion Remix Dungeoneer" },
+    { id = 61074, name = "Mythic Legion Remix Dungeoneer" },	
     { id = 60875, name = "Antorus, the Burning Throne" },
-    { id = 61077, name = "Argus Invasion Point Bosses" }
+    { id = 61077, name = "Argus Invasion Point Bosses" },
 }
 
 local infinitePowerPhaseData = {
@@ -437,15 +441,15 @@ local infinitePowerPhaseData = {
     },
     {
         name = "Phase 2 - Rise of the Nightfallen",
-        achievements = { 28, 29, 30 }
+        achievements = { 28, 29, 30, 31 }
     },
     {
         name = "Phase 3 - Legionfall",
-        achievements = { 36, 37, 38, 39, 40, 41, 42, }
+        achievements = { 32, 33, 34, 35, 36, 37 }
     },
     {
         name = "Phase 4 - Argus Eternal",
-        achievements = { 31, 32, 33, 34, 35 }
+        achievements = { 38, 39, 40, 41, 42, 43, 44, 45, 46, 47 }
     }
 }
 
