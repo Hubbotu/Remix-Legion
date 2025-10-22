@@ -1,8 +1,176 @@
 local addonName, addon = ...
 
 ---------------------------------------------------------
--- MAIN BUTTON
+-- CONSTANTS
 ---------------------------------------------------------
+local TREE_ID = 1161
+local FINAL_NODE_ID = 108700
+
+local ROWS = {
+    { id = 1, name = "Nature", root = 108114 },
+    { id = 2, name = "Fel",    root = 108113 },
+    { id = 3, name = "Arcane", root = 108111 },
+    { id = 4, name = "Storm",  root = 108112 },
+    { id = 5, name = "Holy",   root = 108875 },
+}
+
+---------------------------------------------------------
+-- INTERNAL ROOT-SWITCH LOGIC
+---------------------------------------------------------
+
+local SwitchCache = {
+    cached_config = nil,
+    base_path = nil,
+    rows = {},
+}
+
+local function get_config_id()
+    return C_Traits.GetConfigIDByTreeID(TREE_ID)
+end
+
+local function purchase_node_fully(config_id, node_id)
+    local node_info = C_Traits.GetNodeInfo(config_id, node_id)
+    if not node_info then return false end
+
+    if #node_info.entryIDs > 1 then
+        local entry_id = node_info.entryIDs[1]
+        local ok = C_Traits.SetSelection(config_id, node_id, entry_id)
+        local entry_info = C_Traits.GetEntryInfo(config_id, entry_id)
+        for _ = 1, (entry_info and entry_info.maxRanks or 1) - 1 do
+            ok = C_Traits.PurchaseRank(config_id, node_id)
+            if not ok then return false end
+        end
+        return ok and true or false
+    else
+        for _ = 1, (node_info.maxRanks or 1) do
+            local ok = C_Traits.PurchaseRank(config_id, node_id)
+            if not ok then return false end
+        end
+        return true
+    end
+end
+
+local function build_path(config_id, tree_id, stop_at_node_set, root_override)
+    if not config_id then return nil end
+    local tree_info = C_Traits.GetTreeInfo(config_id, tree_id)
+    if not tree_info then return nil end
+    local root_node_id = root_override or tree_info.rootNodeID
+    if not root_node_id then return nil end
+
+    local available = { root_node_id }
+    local in_path = {}
+    local visited = { [root_node_id] = true }
+
+    local function cheapest(nodes)
+        local cheapest_cost = math.huge
+        local cheapest_node, cheapest_index
+        for idx, node_id in ipairs(nodes) do
+            local cost = C_Traits.GetNodeCost(config_id, node_id)
+            local amount = (cost and cost[1] and cost[1].amount) or 0
+            if amount < cheapest_cost then
+                cheapest_cost = amount
+                cheapest_node = node_id
+                cheapest_index = idx
+            end
+        end
+        return cheapest_node, cheapest_index
+    end
+
+    while #available > 0 do
+        local next_node, next_index = cheapest(available)
+        if not next_node then break end
+        table.insert(in_path, next_node)
+        table.remove(available, next_index)
+        visited[next_node] = true
+
+        local node_info = C_Traits.GetNodeInfo(config_id, next_node)
+        if not node_info then break end
+        for _, edge in ipairs(node_info.visibleEdges or {}) do
+            local target = edge.targetNode
+            if (not visited[target]) and (not (stop_at_node_set and stop_at_node_set[target])) then
+                table.insert(available, target)
+                visited[target] = true
+            end
+        end
+    end
+
+    return in_path
+end
+
+local function purchase_path(config_id, tree_id, nodes)
+    if not nodes then return end
+    local tries = 0
+    local max_tries = (#nodes * 3) + 10
+    while true do
+        for i = #nodes, 1, -1 do
+            local node_id = nodes[i]
+            local info = C_Traits.GetNodeInfo(config_id, node_id)
+            if info and info.ranksPurchased >= info.maxRanks then
+                table.remove(nodes, i)
+            else
+                local ok = purchase_node_fully(config_id, node_id)
+                if ok then
+                    table.remove(nodes, i)
+                end
+            end
+        end
+        if #nodes == 0 then return end
+        if tries >= max_tries then return end
+        tries = tries + 1
+    end
+end
+
+local function rebuild_paths_if_needed(config_id)
+    if not config_id then return end
+    if SwitchCache.cached_config == config_id then return end
+
+    local stop_at = {}
+    for _, row in ipairs(ROWS) do
+        stop_at[row.root] = true
+    end
+
+    SwitchCache.base_path = build_path(config_id, TREE_ID, stop_at, nil) or {}
+    SwitchCache.rows = {}
+    for _, row in ipairs(ROWS) do
+        SwitchCache.rows[row.id] = build_path(config_id, TREE_ID, nil, row.root) or {}
+    end
+
+    SwitchCache.cached_config = config_id
+end
+
+local function switch_to_root(row_id)
+    local config_id = get_config_id()
+    if not config_id then return end
+
+    rebuild_paths_if_needed(config_id)
+
+    local selected = nil
+    for _, r in ipairs(ROWS) do
+        if r.id == row_id then selected = r break end
+    end
+    if not selected then return end
+
+    C_Traits.ResetTree(config_id, TREE_ID)
+
+    if SwitchCache.base_path and #SwitchCache.base_path > 0 then
+        purchase_path(config_id, TREE_ID, { unpack(SwitchCache.base_path) })
+        purchase_path(config_id, TREE_ID, { unpack(SwitchCache.base_path) })
+    end
+
+    local path = SwitchCache.rows[row_id]
+    if not path or #path == 0 then
+        path = build_path(config_id, TREE_ID, nil, selected.root) or {}
+        if #path == 0 then return end
+    end
+
+    C_Traits.TryPurchaseToNode(config_id, path[#path])
+    C_Traits.TryPurchaseAllRanks(config_id, FINAL_NODE_ID)
+    C_Traits.CommitConfig(config_id)
+end
+
+--------------------------------------------------------- 
+-- MAIN BUTTON
+--------------------------------------------------------- 
 local remixButton = CreateFrame("Button", "RemixButton", UIParent, "UIPanelButtonTemplate")
 remixButton:SetSize(80, 22)
 remixButton:SetText("Remix")
@@ -13,9 +181,9 @@ remixButton:SetUserPlaced(true)
 remixButton:SetScript("OnDragStart", function(self) self:StartMoving() end)
 remixButton:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
 
----------------------------------------------------------
+--------------------------------------------------------- 
 -- MAIN FRAME
----------------------------------------------------------
+--------------------------------------------------------- 
 local mainFrame = CreateFrame("Frame", "RemixFrame", UIParent, "BasicFrameTemplateWithInset")
 mainFrame:SetSize(400, 600)
 mainFrame:SetPoint("CENTER")
@@ -27,15 +195,47 @@ mainFrame:SetScript("OnDragStart", function(self) self:StartMoving() end)
 mainFrame:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
 
 ---------------------------------------------------------
--- CONTENT FRAME
+-- SIMPLE LABEL
 ---------------------------------------------------------
 local contentFrame = CreateFrame("Frame", nil, mainFrame)
 contentFrame:SetPoint("TOPLEFT", mainFrame, "TOPLEFT", 10, -30)
 contentFrame:SetPoint("BOTTOMRIGHT", mainFrame, "BOTTOMRIGHT", -10, 10)
 
+local title = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+title:SetPoint("TOP", contentFrame, "TOP", 0, -20)
+title:SetText("")
+
+local statusText = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+statusText:SetPoint("TOP", title, "BOTTOM", 0, -15)
+statusText:SetText("")
+
 ---------------------------------------------------------
+-- TOGGLE
+---------------------------------------------------------
+remixButton:SetScript("OnClick", function()
+    if mainFrame:IsShown() then
+        mainFrame:Hide()
+    else
+        mainFrame:Show()
+    end
+end)
+
+--------------------------------------------------------- 
+-- ROOT BUTTONS
+--------------------------------------------------------- 
+for i, data in ipairs(ROWS) do
+    local btn = CreateFrame("Button", "RemixRootButton"..i, mainFrame, "UIPanelButtonTemplate")
+    btn:SetSize(80, 22)
+    btn:SetText(data.name)
+    btn:SetPoint("TOPRIGHT", mainFrame, "TOPLEFT", -5, -30 - (i - 1) * 30)
+    btn:SetScript("OnClick", function()
+        switch_to_root(data.id)
+    end)
+end
+
+--------------------------------------------------------- 
 -- TABS
----------------------------------------------------------
+--------------------------------------------------------- 
 local tabs = {}
 local tabContent = {
     { name = "General", text = "" },
@@ -45,9 +245,9 @@ local tabContent = {
     { name = "Feats", text = "" }
 }
 
----------------------------------------------------------
+--------------------------------------------------------- 
 -- GENERAL TAB
----------------------------------------------------------
+--------------------------------------------------------- 
 local generalTitle = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 generalTitle:SetFont("Fonts\\FRIZQT__.TTF", 20)
 generalTitle:SetPoint("TOP", contentFrame, "TOP", 0, -20)
@@ -103,9 +303,9 @@ for i = 1, 5 do
     generalPhaseTexts[i] = phaseText
 end
 
----------------------------------------------------------
+--------------------------------------------------------- 
 -- EXPERIENCE TAB
----------------------------------------------------------
+--------------------------------------------------------- 
 local experienceTitle = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 experienceTitle:SetFont("Fonts\\FRIZQT__.TTF", 20)
 experienceTitle:SetPoint("TOP", contentFrame, "TOP", 0, -20)
@@ -150,9 +350,9 @@ for i, ach in ipairs(sharedAchievements) do
     experienceLinkButtons[i] = linkBtn
 end
 
----------------------------------------------------------
+--------------------------------------------------------- 
 -- COSMETICS TAB
----------------------------------------------------------
+--------------------------------------------------------- 
 local cosmeticsTitle = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 cosmeticsTitle:SetFont("Fonts\\FRIZQT__.TTF", 20)
 cosmeticsTitle:SetPoint("TOP", contentFrame, "TOP", 0, -20)
@@ -232,9 +432,9 @@ for i = 15, #cosmeticsAchievements do
     cosmeticsAchievementTitles[i]:SetPoint("TOPLEFT", i == 15 and cosmeticsPetsLabel or cosmeticsAchievementTitles[i - 1], "BOTTOMLEFT", 0, -10)
 end
 
----------------------------------------------------------
--- FEATS TAB (flush to left edge horizontally)
----------------------------------------------------------
+--------------------------------------------------------- 
+-- FEATS TAB
+--------------------------------------------------------- 
 local featsTitle = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 featsTitle:SetFont("Fonts\\FRIZQT__.TTF", 20)
 featsTitle:SetPoint("TOP", contentFrame, "TOP", 0, -20)
@@ -408,28 +608,28 @@ local infinitePowerAchievements = {
     { id = 61076, name = "Broken Isles World Bosses" },
     { id = 60859, name = "The Emerald Nightmare" },
     { id = 60860, name = "Trial of Valor" },
-	{ id = 61075, name = "Heroic Legion Remix Raider" },
+    { id = 61075, name = "Heroic Legion Remix Raider" },
     -- Phase 2 - Rise of the Nightfallen (28-31)
     { id = 42537, name = "Insurrection" },
     { id = 60854, name = "Heroic: Return to Karazhan" },
-    { id = 60855, name = "Heroic: Return to Karazhan" },	
+    { id = 60855, name = "Heroic: Return to Karazhan" }, 
     { id = 60865, name = "The Nighthold" },
-    -- Phase 3 - Legionfall (32-37)	
+    -- Phase 3 - Legionfall (32-37) 
     { id = 60870, name = "Tomb of Sargeras" },
     { id = 42647, name = "Breaching the Tomb" },
     { id = 42673, name = "Defending the Broken Isles I" },
     { id = 42672, name = "Defending the Broken Isles II" },
     { id = 60850, name = "Heroic: Cathedral of Eternal Night" },
-    { id = 61080, name = "Broken Shore World Bosses" },	
+    { id = 61080, name = "Broken Shore World Bosses" }, 
     -- Phase 4 - Argus Eternal (38-47)
     { id = 42612, name = "You Are Now Prepared!" },
     { id = 42693, name = "Breaking the Legion I" },
     { id = 42696, name = "Greater Invasion Points I" },
     { id = 42697, name = "Greater Invasion Points II" },
-    { id = 60852, name = "Heroic: Seat of the Triumvirate" },	
+    { id = 60852, name = "Heroic: Seat of the Triumvirate" }, 
     { id = 42320, name = "Legion Remix Dungeoneer" },
     { id = 61073, name = "Heroic Legion Remix Dungeoneer" },
-    { id = 61074, name = "Mythic Legion Remix Dungeoneer" },	
+    { id = 61074, name = "Mythic Legion Remix Dungeoneer" }, 
     { id = 60875, name = "Antorus, the Burning Throne" },
     { id = 61077, name = "Argus Invasion Point Bosses" },
 }
@@ -608,6 +808,7 @@ local function UpdatePhaseTimers()
         else
             status = "|cffff0000" .. days .. " days|r"
         end
+        generalPhaseTexts[i]:SetPoint("TOPLEFT", generalPhasesTitle, "BOTTOMLEFT", -155, -10 - (i - 1) * 22)
         generalPhaseTexts[i]:SetText(phase.name .. ": " .. status)
     end
 end
