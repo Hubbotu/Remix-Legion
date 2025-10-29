@@ -1,3 +1,4 @@
+-- FremeAch.lua (modified - full file)
 local addonName, addon = ...
 
 ---------------------------------------------------------
@@ -168,9 +169,9 @@ local function switch_to_root(row_id)
     C_Traits.CommitConfig(config_id)
 end
 
---------------------------------------------------------- 
+---------------------------------------------------------
 -- MAIN BUTTON
---------------------------------------------------------- 
+---------------------------------------------------------
 local remixButton = CreateFrame("Button", "RemixButton", UIParent, "UIPanelButtonTemplate")
 remixButton:SetSize(80, 22)
 remixButton:SetText("Remix")
@@ -181,9 +182,9 @@ remixButton:SetUserPlaced(true)
 remixButton:SetScript("OnDragStart", function(self) self:StartMoving() end)
 remixButton:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
 
---------------------------------------------------------- 
+---------------------------------------------------------
 -- MAIN FRAME
---------------------------------------------------------- 
+---------------------------------------------------------
 local mainFrame = CreateFrame("Frame", "RemixFrame", UIParent, "BasicFrameTemplateWithInset")
 mainFrame:SetSize(400, 600)
 mainFrame:SetPoint("CENTER")
@@ -220,34 +221,183 @@ remixButton:SetScript("OnClick", function()
     end
 end)
 
---------------------------------------------------------- 
--- ROOT BUTTONS
---------------------------------------------------------- 
-for i, data in ipairs(ROWS) do
-    local btn = CreateFrame("Button", "RemixRootButton"..i, mainFrame, "UIPanelButtonTemplate")
-    btn:SetSize(80, 22)
-    btn:SetText(data.name)
-    btn:SetPoint("TOPRIGHT", mainFrame, "TOPLEFT", -5, -30 - (i - 1) * 30)
-    btn:SetScript("OnClick", function()
-        switch_to_root(data.id)
-    end)
+---------------------------------------------------------
+-- ROOT BUTTONS (OPTIMIZED, LOW-LOAD VERSION)
+---------------------------------------------------------
+
+local QUEST_ICON = "Interface\\AddOns\\ZamestoTV_Remix\\Icons\\qqt.tga"
+
+local ROWS = {
+    { id = 1, name = "Nature", root = 108114 },
+    { id = 2, name = "Fel", root = 108113 },
+    { id = 3, name = "Arcane", root = 108111 },
+    { id = 4, name = "Storm", root = 108112 },
+    { id = 5, name = "Holy", root = 108875 },
+}
+
+local QUEST_ROOT_MAP = {
+    [90115] = 108114, -- Nature
+    [92439] = 108113, -- Fel
+    [92440] = 108111, -- Arcane
+    [92441] = 108112, -- Storm
+    [92442] = 108875, -- Holy
+}
+
+local buttonsByRoot = {}
+local questCache = {}
+local needsQuestUpdate, needsTraitUpdate = false, false
+
+---------------------------------------------------------
+-- Utilities
+---------------------------------------------------------
+
+local function PlayerHasQuest(questID)
+    -- Cached lookup
+    if questCache[questID] ~= nil then
+        return questCache[questID]
+    end
+
+    if C_QuestLog.IsOnQuest(questID) then
+        questCache[questID] = true
+        return true
+    end
+
+    local numEntries = C_QuestLog.GetNumQuestLogEntries()
+    for i = 1, numEntries do
+        local info = C_QuestLog.GetInfo(i)
+        if info and not info.isHeader and info.questID == questID then
+            questCache[questID] = true
+            return true
+        end
+    end
+
+    questCache[questID] = false
+    return false
 end
 
---------------------------------------------------------- 
+local function UpdateQuestIcons()
+    local changed = false
+    for questID, rootID in pairs(QUEST_ROOT_MAP) do
+        local hasQuest = PlayerHasQuest(questID)
+        local btn = buttonsByRoot[rootID]
+        if btn then
+            if hasQuest and not btn.icon:IsShown() then
+                btn.icon:Show()
+                changed = true
+            elseif not hasQuest and btn.icon:IsShown() then
+                btn.icon:Hide()
+                changed = true
+            end
+        end
+    end
+    return changed
+end
+
+local function UpdateRootSelection()
+    local config_id = C_Traits.GetConfigIDByTreeID(TREE_ID)
+    if not config_id then return end
+
+    for _, data in ipairs(ROWS) do
+        local btn = buttonsByRoot[data.root]
+        if btn then
+            local node_info = C_Traits.GetNodeInfo(config_id, data.root)
+            if node_info and node_info.ranksPurchased > 0 then
+                btn:SetText("|cff00ff00" .. data.name .. "|r")
+            else
+                btn:SetText(data.name)
+            end
+        end
+    end
+end
+
+---------------------------------------------------------
+-- Buttons
+---------------------------------------------------------
+
+for i, data in ipairs(ROWS) do
+    local btn = CreateFrame("Button", "RemixRootButton" .. i, mainFrame, "UIPanelButtonTemplate")
+    btn:SetSize(100, 22)
+    btn:SetText(data.name)
+    btn:SetPoint("TOPRIGHT", mainFrame, "TOPLEFT", -5, -30 - (i - 1) * 30)
+
+    btn.icon = btn:CreateTexture(nil, "ARTWORK")
+    btn.icon:SetSize(18, 18)
+    btn.icon:SetPoint("RIGHT", btn, "LEFT", -4, 0)
+    btn.icon:SetTexture(QUEST_ICON)
+    btn.icon:Hide()
+
+    btn:SetScript("OnClick", function()
+        switch_to_root(data.id)
+        needsTraitUpdate = true
+    end)
+
+    buttonsByRoot[data.root] = btn
+end
+
+---------------------------------------------------------
+-- Event Handling (lightweight)
+---------------------------------------------------------
+
+local eventFrame = CreateFrame("Frame")
+eventFrame:RegisterEvent("QUEST_ACCEPTED")
+eventFrame:RegisterEvent("QUEST_REMOVED")
+eventFrame:RegisterEvent("QUEST_TURNED_IN")
+eventFrame:RegisterEvent("QUEST_LOG_UPDATE")
+eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+eventFrame:RegisterEvent("TRAIT_CONFIG_UPDATED")
+
+eventFrame:SetScript("OnEvent", function(_, event)
+    if event == "TRAIT_CONFIG_UPDATED" then
+        needsTraitUpdate = true
+    else
+        -- Debounce quest updates (batch them)
+        needsQuestUpdate = true
+    end
+end)
+
+---------------------------------------------------------
+-- Background updater (every 1s, very light)
+---------------------------------------------------------
+
+local ticker = C_Timer.NewTicker(1, function()
+    if needsQuestUpdate then
+        questCache = {} -- clear cache on change
+        UpdateQuestIcons()
+        needsQuestUpdate = false
+    end
+
+    if needsTraitUpdate then
+        UpdateRootSelection()
+        needsTraitUpdate = false
+    end
+end)
+
+---------------------------------------------------------
+-- Initial setup
+---------------------------------------------------------
+
+C_Timer.After(1.5, function()
+    questCache = {}
+    UpdateQuestIcons()
+    UpdateRootSelection()
+end)
+
+---------------------------------------------------------
 -- TABS
---------------------------------------------------------- 
+---------------------------------------------------------
 local tabs = {}
 local tabContent = {
     { name = "General", text = "" },
     { name = "Infinite Power", text = "" },
     { name = "Experience", text = "" },
     { name = "Cosmetics", text = "" },
-    { name = "Feats", text = "" }
+    { name = "Feats", text = "" },
+    { name = "Settings", text = "" },
 }
 
---------------------------------------------------------- 
+---------------------------------------------------------
 -- GENERAL TAB
---------------------------------------------------------- 
+---------------------------------------------------------
 local generalTitle = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 generalTitle:SetFont("Fonts\\FRIZQT__.TTF", 20)
 generalTitle:SetPoint("TOP", contentFrame, "TOP", 0, -20)
@@ -303,9 +453,9 @@ for i = 1, 5 do
     generalPhaseTexts[i] = phaseText
 end
 
---------------------------------------------------------- 
+---------------------------------------------------------
 -- EXPERIENCE TAB
---------------------------------------------------------- 
+---------------------------------------------------------
 local experienceTitle = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 experienceTitle:SetFont("Fonts\\FRIZQT__.TTF", 20)
 experienceTitle:SetPoint("TOP", contentFrame, "TOP", 0, -20)
@@ -350,9 +500,9 @@ for i, ach in ipairs(sharedAchievements) do
     experienceLinkButtons[i] = linkBtn
 end
 
---------------------------------------------------------- 
+---------------------------------------------------------
 -- COSMETICS TAB
---------------------------------------------------------- 
+---------------------------------------------------------
 local cosmeticsTitle = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 cosmeticsTitle:SetFont("Fonts\\FRIZQT__.TTF", 20)
 cosmeticsTitle:SetPoint("TOP", contentFrame, "TOP", 0, -20)
@@ -432,9 +582,9 @@ for i = 15, #cosmeticsAchievements do
     cosmeticsAchievementTitles[i]:SetPoint("TOPLEFT", i == 15 and cosmeticsPetsLabel or cosmeticsAchievementTitles[i - 1], "BOTTOMLEFT", 0, -10)
 end
 
---------------------------------------------------------- 
+---------------------------------------------------------
 -- FEATS TAB
---------------------------------------------------------- 
+---------------------------------------------------------
 local featsTitle = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 featsTitle:SetFont("Fonts\\FRIZQT__.TTF", 20)
 featsTitle:SetPoint("TOP", contentFrame, "TOP", 0, -20)
@@ -541,9 +691,57 @@ end)
 linkBtn8:Hide()
 featsLinkButtons[8] = linkBtn8
 
---------------------------------------------------------- 
--- Infinite Power Tab
---------------------------------------------------------- 
+---------------------------------------------------------
+-- SETTINGS TAB
+---------------------------------------------------------
+local settingsTitle = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+settingsTitle:SetFont("Fonts\\FRIZQT__.TTF", 20)
+settingsTitle:SetPoint("TOP", contentFrame, "TOP", 0, -20)
+settingsTitle:SetJustifyH("CENTER")
+settingsTitle:SetText("Settings")
+settingsTitle:Hide()
+
+local settingsDesc = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+settingsDesc:SetPoint("TOP", settingsTitle, "BOTTOM", 0, -10)
+settingsDesc:SetJustifyH("CENTER")
+settingsDesc:SetText("All addon settings.")
+settingsDesc:Hide()
+
+-- Auto-open chests
+local autoChestLabel = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+autoChestLabel:SetPoint("TOPLEFT", settingsDesc, "BOTTOMLEFT", -100, -30)
+autoChestLabel:SetJustifyH("LEFT")
+autoChestLabel:SetText("Auto-open chests")
+autoChestLabel:Hide()
+
+local autoChestBtn = CreateFrame("Button", nil, contentFrame, "UIPanelButtonTemplate")
+autoChestBtn:SetSize(60, 22)
+autoChestBtn:SetPoint("LEFT", autoChestLabel, "RIGHT", 10, 0)
+autoChestBtn:SetScript("OnClick", function()
+    SlashCmdList["ZORR"]()
+    autoChestBtn:SetText(openableScanEnabled and "On/Off" or "On/Off")
+end)
+autoChestBtn:Hide()
+
+-- Bronze Tracker
+local bronzeLabel = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+bronzeLabel:SetPoint("TOPLEFT", autoChestLabel, "BOTTOMLEFT", 0, -20)
+bronzeLabel:SetJustifyH("LEFT")
+bronzeLabel:SetText("Bronze Tracker")
+bronzeLabel:Hide()
+
+local bronzeBtn = CreateFrame("Button", nil, contentFrame, "UIPanelButtonTemplate")
+bronzeBtn:SetSize(60, 22)
+bronzeBtn:SetPoint("LEFT", bronzeLabel, "RIGHT", 10, 0)
+bronzeBtn:SetScript("OnClick", function()
+    SlashCmdList["BRONZETRACKER"]()
+end)
+bronzeBtn:SetText("On/Off")
+bronzeBtn:Hide()
+
+---------------------------------------------------------
+-- INFINITE POWER TAB
+---------------------------------------------------------
 local infinitePowerTitle = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 infinitePowerTitle:SetFont("Fonts\\FRIZQT__.TTF", 20)
 infinitePowerTitle:SetPoint("TOP", contentFrame, "TOP", 0, -20)
@@ -581,7 +779,7 @@ end
 
 -- Infinite Power Achievements
 local infinitePowerAchievements = {
-    -- Phase 1 - Skies of Fire (1-27)
+    -- Phase 1
     { id = 42314, name = "Unlimited Power" },
     { id = 42315, name = "Unlimited Power II" },
     { id = 42505, name = "Unlimited Power III" },
@@ -609,55 +807,43 @@ local infinitePowerAchievements = {
     { id = 60859, name = "The Emerald Nightmare" },
     { id = 60860, name = "Trial of Valor" },
     { id = 61075, name = "Heroic Legion Remix Raider" },
-    -- Phase 2 - Rise of the Nightfallen (28-31)
+    { id = 42313, name = "Remixing Time" },
+    -- Phase 2
     { id = 42537, name = "Insurrection" },
     { id = 60854, name = "Heroic: Return to Karazhan" },
-    { id = 60855, name = "Heroic: Return to Karazhan" }, 
+    { id = 60855, name = "Heroic: Return to Karazhan" },
     { id = 60865, name = "The Nighthold" },
-    -- Phase 3 - Legionfall (32-37) 
+    -- Phase 3
     { id = 60870, name = "Tomb of Sargeras" },
     { id = 42647, name = "Breaching the Tomb" },
     { id = 42673, name = "Defending the Broken Isles I" },
     { id = 42672, name = "Defending the Broken Isles II" },
     { id = 60850, name = "Heroic: Cathedral of Eternal Night" },
-    { id = 61080, name = "Broken Shore World Bosses" }, 
-    -- Phase 4 - Argus Eternal (38-47)
+    { id = 61080, name = "Broken Shore World Bosses" },
+    -- Phase 4
     { id = 42612, name = "You Are Now Prepared!" },
     { id = 42693, name = "Breaking the Legion I" },
     { id = 42696, name = "Greater Invasion Points I" },
     { id = 42697, name = "Greater Invasion Points II" },
-    { id = 60852, name = "Heroic: Seat of the Triumvirate" }, 
+    { id = 60852, name = "Heroic: Seat of the Triumvirate" },
     { id = 42320, name = "Legion Remix Dungeoneer" },
     { id = 61073, name = "Heroic Legion Remix Dungeoneer" },
-    { id = 61074, name = "Mythic Legion Remix Dungeoneer" }, 
+    { id = 61074, name = "Mythic Legion Remix Dungeoneer" },
     { id = 60875, name = "Antorus, the Burning Throne" },
     { id = 61077, name = "Argus Invasion Point Bosses" },
 }
 
 local infinitePowerPhaseData = {
-    {
-        name = "Phase 1 - Skies of Fire",
-        achievements = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27 }
-    },
-    {
-        name = "Phase 2 - Rise of the Nightfallen",
-        achievements = { 28, 29, 30, 31 }
-    },
-    {
-        name = "Phase 3 - Legionfall",
-        achievements = { 32, 33, 34, 35, 36, 37 }
-    },
-    {
-        name = "Phase 4 - Argus Eternal",
-        achievements = { 38, 39, 40, 41, 42, 43, 44, 45, 46, 47 }
-    }
+    { name = "Phase 1 - Skies of Fire 28/36", achievements = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28} },
+    { name = "Phase 2 - Rise of the Nightfallen 32/36", achievements = {29,30,31,32} },
+    { name = "Phase 3 - Legionfall 38/36", achievements = {33,34,35,36,37,38} },
+    { name = "Phase 4 - Argus Eternal 48/36", achievements = {39,40,41,42,43,44,45,46,47,48} }
 }
 
 local infinitePowerPhaseLabels = {}
 local infinitePowerAchievementTitles = {}
 local infinitePowerLinkButtons = {}
 
--- Create phase labels and achievements
 for phaseIndex, phase in ipairs(infinitePowerPhaseData) do
     local parent = (phaseIndex == 1) and scrollChild or infinitePowerContent
     local label = parent:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -682,7 +868,6 @@ for phaseIndex, phase in ipairs(infinitePowerPhaseData) do
         local linkBtn = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
         linkBtn:SetSize(60, 22)
         linkBtn:SetText("Link")
-        -- Adjust x offset for Phase 1 (Skies of Fire) to move 7 pixels left
         if phaseIndex == 1 then
             linkBtn:SetPoint("TOPLEFT", achTitle, "TOPRIGHT", -6, 0)
         else
@@ -697,17 +882,12 @@ for phaseIndex, phase in ipairs(infinitePowerPhaseData) do
     end
 end
 
--- Phase Button Logic
 local function ShowPhase(phaseIndex)
     for i = 1, 4 do
         local show = (i == phaseIndex)
         infinitePowerPhaseLabels[i]:SetShown(show)
-        for _, title in ipairs(infinitePowerAchievementTitles[i]) do
-            title:SetShown(show)
-        end
-        for _, btn in ipairs(infinitePowerLinkButtons[i]) do
-            btn:SetShown(show)
-        end
+        for _, title in ipairs(infinitePowerAchievementTitles[i]) do title:SetShown(show) end
+        for _, btn in ipairs(infinitePowerLinkButtons[i]) do btn:SetShown(show) end
         phaseButtons[i]:SetEnabled(not show)
     end
     scrollFrame:SetShown(phaseIndex == 1)
@@ -717,7 +897,9 @@ for i, btn in ipairs(phaseButtons) do
     btn:SetScript("OnClick", function() ShowPhase(i) end)
 end
 
--- Update Functions
+---------------------------------------------------------
+-- UPDATE FUNCTIONS
+---------------------------------------------------------
 local function UpdateCurrencyDisplay()
     local currencyInfo = C_CurrencyInfo.GetCurrencyInfo(3292)
     if currencyInfo then
@@ -798,120 +980,75 @@ end
 
 local function UpdatePhaseTimers()
     local currentTime = GetServerTime()
-    -- Adjust current time to midnight EEST for consistent day counting
     local currentDate = math.floor(currentTime / 86400) * 86400
     for i, phase in ipairs(phaseData) do
         local days = math.max(0, math.ceil((phase.startDate - currentDate) / 86400))
-        local status
-        if days <= 0 then
-            status = "|cff00ff00Available|r"
-        else
-            status = "|cffff0000" .. days .. " days|r"
-        end
-        generalPhaseTexts[i]:SetPoint("TOPLEFT", generalPhasesTitle, "BOTTOMLEFT", -155, -10 - (i - 1) * 22)
+        local status = days <= 0 and "|cff00ff00Available|r" or "|cffff0000" .. days .. " days|r"
         generalPhaseTexts[i]:SetText(phase.name .. ": " .. status)
     end
 end
 
--- Tab Switching
+---------------------------------------------------------
+-- TAB SWITCHING
+---------------------------------------------------------
 for i, tabInfo in ipairs(tabContent) do
     local tabButton = CreateFrame("Button", "RemixTab" .. i, mainFrame, "UIPanelButtonTemplate")
     tabButton:SetSize(80, 22)
     tabButton:SetText(tabInfo.name)
     tabButton:SetPoint("TOPLEFT", mainFrame, "TOPRIGHT", 5, -30 - (i - 1) * 30)
     tabButton:SetScript("OnClick", function()
-        -- Hide all tab content
-        generalTitle:Hide()
-        generalDescription:Hide()
-        generalCurrency:Hide()
-        generalExperienceBonus:Hide()
-        generalAchievementProgress:Hide()
-        generalPhasesTitle:Hide()
-        for _, phaseText in ipairs(generalPhaseTexts) do phaseText:Hide() end
-        experienceTitle:Hide()
-        experienceDescription:Hide()
-        cosmeticsTitle:Hide()
-        cosmeticsTitlesLabel:Hide()
-        cosmeticsTransmogsLabel:Hide()
-        cosmeticsPetsLabel:Hide()
-        featsTitle:Hide()
-        featsDescription:Hide()
-        featsStrengthTitle:Hide()
-        featsStrengthDescription:Hide()
-        featsUnknownDescription:Hide()
-        infinitePowerTitle:Hide()
-        infinitePowerContent:Hide()
-        for _, title in ipairs(cosmeticsAchievementTitles) do title:Hide() end
-        for _, btn in ipairs(cosmeticsLinkButtons) do btn:Hide() end
-        for _, title in ipairs(experienceAchievementTitles) do title:Hide() end
-        for _, btn in ipairs(experienceLinkButtons) do btn:Hide() end
-        for _, title in ipairs(featsAchievementTitles) do title:Hide() end
-        for _, btn in ipairs(featsLinkButtons) do btn:Hide() end
-        for j = 1, 4 do
-            phaseButtons[j]:Hide()
-            infinitePowerPhaseLabels[j]:Hide()
-            for _, title in ipairs(infinitePowerAchievementTitles[j]) do title:Hide() end
-            for _, btn in ipairs(infinitePowerLinkButtons[j]) do btn:Hide() end
-        end
+        -- Hide all
+        generalTitle:Hide(); generalDescription:Hide(); generalCurrency:Hide(); generalExperienceBonus:Hide(); generalAchievementProgress:Hide(); generalPhasesTitle:Hide()
+        for _, t in ipairs(generalPhaseTexts) do t:Hide() end
+        experienceTitle:Hide(); experienceDescription:Hide()
+        cosmeticsTitle:Hide(); cosmeticsTitlesLabel:Hide(); cosmeticsTransmogsLabel:Hide(); cosmeticsPetsLabel:Hide()
+        featsTitle:Hide(); featsDescription:Hide(); featsStrengthTitle:Hide(); featsStrengthDescription:Hide(); featsUnknownDescription:Hide()
+        infinitePowerTitle:Hide(); infinitePowerContent:Hide()
+        for _, t in ipairs(cosmeticsAchievementTitles) do t:Hide() end
+        for _, b in ipairs(cosmeticsLinkButtons) do b:Hide() end
+        for _, t in ipairs(experienceAchievementTitles) do t:Hide() end
+        for _, b in ipairs(experienceLinkButtons) do b:Hide() end
+        for _, t in ipairs(featsAchievementTitles) do t:Hide() end
+        for _, b in ipairs(featsLinkButtons) do b:Hide() end
+        for j = 1, 4 do phaseButtons[j]:Hide(); infinitePowerPhaseLabels[j]:Hide(); for _, t in ipairs(infinitePowerAchievementTitles[j]) do t:Hide() end; for _, b in ipairs(infinitePowerLinkButtons[j]) do b:Hide() end end
         scrollFrame:Hide()
+        settingsTitle:Hide(); settingsDesc:Hide(); autoChestLabel:Hide(); autoChestBtn:Hide(); bronzeLabel:Hide(); bronzeBtn:Hide()
 
-        -- Show selected tab content
-        if i == 1 then -- General
-            generalTitle:Show()
-            generalDescription:Show()
-            generalCurrency:Show()
-            generalExperienceBonus:Show()
-            generalAchievementProgress:Show()
-            generalPhasesTitle:Show()
-            for _, phaseText in ipairs(generalPhaseTexts) do phaseText:Show() end
-            UpdateCurrencyDisplay()
-            UpdateGeneralAchievementProgress()
-            UpdatePhaseTimers()
-        elseif i == 2 then -- Infinite Power
-            infinitePowerTitle:Show()
-            infinitePowerContent:Show()
-            for j = 1, 4 do phaseButtons[j]:Show() end
-            ShowPhase(1)
-            UpdateInfinitePowerAchievementDisplay()
-        elseif i == 3 then -- Experience
-            experienceTitle:Show()
-            experienceDescription:Show()
-            for _, title in ipairs(experienceAchievementTitles) do title:Show() end
-            for _, btn in ipairs(experienceLinkButtons) do btn:Show() end
+        -- Show selected
+        if i == 1 then
+            generalTitle:Show(); generalDescription:Show(); generalCurrency:Show(); generalExperienceBonus:Show(); generalAchievementProgress:Show(); generalPhasesTitle:Show()
+            for _, t in ipairs(generalPhaseTexts) do t:Show() end
+            UpdateCurrencyDisplay(); UpdateGeneralAchievementProgress(); UpdatePhaseTimers()
+        elseif i == 2 then
+            infinitePowerTitle:Show(); infinitePowerContent:Show(); for j = 1, 4 do phaseButtons[j]:Show() end; ShowPhase(1); UpdateInfinitePowerAchievementDisplay()
+        elseif i == 3 then
+            experienceTitle:Show(); experienceDescription:Show()
+            for _, t in ipairs(experienceAchievementTitles) do t:Show() end
+            for _, b in ipairs(experienceLinkButtons) do b:Show() end
             UpdateExperienceAchievementDisplay()
-        elseif i == 4 then -- Cosmetics
-            cosmeticsTitle:Show()
-            cosmeticsTitlesLabel:Show()
-            cosmeticsTransmogsLabel:Show()
-            cosmeticsPetsLabel:Show()
-            for _, title in ipairs(cosmeticsAchievementTitles) do title:Show() end
-            for _, btn in ipairs(cosmeticsLinkButtons) do btn:Show() end
+        elseif i == 4 then
+            cosmeticsTitle:Show(); cosmeticsTitlesLabel:Show(); cosmeticsTransmogsLabel:Show(); cosmeticsPetsLabel:Show()
+            for _, t in ipairs(cosmeticsAchievementTitles) do t:Show() end
+            for _, b in ipairs(cosmeticsLinkButtons) do b:Show() end
             UpdateCosmeticsAchievementDisplay()
-        elseif i == 5 then -- Feats
-            featsTitle:Show()
-            featsDescription:Show()
-            featsStrengthTitle:Show()
-            featsStrengthDescription:Show()
-            featsUnknownDescription:Show()
-            for _, title in ipairs(featsAchievementTitles) do title:Show() end
-            for _, btn in ipairs(featsLinkButtons) do btn:Show() end
+        elseif i == 5 then
+            featsTitle:Show(); featsDescription:Show(); featsStrengthTitle:Show(); featsStrengthDescription:Show(); featsUnknownDescription:Show()
+            for _, t in ipairs(featsAchievementTitles) do t:Show() end
+            for _, b in ipairs(featsLinkButtons) do b:Show() end
             UpdateFeatsAchievementDisplay()
+        elseif i == 6 then
+            settingsTitle:Show(); settingsDesc:Show(); autoChestLabel:Show(); autoChestBtn:Show(); autoChestBtn:SetText(openableScanEnabled and "On" or "Off"); bronzeLabel:Show(); bronzeBtn:Show()
         end
 
-        -- Update tab button states
         for j, t in ipairs(tabs) do t:SetEnabled(j ~= i) end
     end)
     tabs[i] = tabButton
 end
-
 tabs[1]:SetEnabled(false)
 
--- Frame Show/Hide Logic
-remixButton:SetScript("OnClick", function()
-    if mainFrame:IsShown() then mainFrame:Hide() else mainFrame:Show() end
-end)
-
--- SavedVariables and Slash Command
+---------------------------------------------------------
+-- FRAME SHOW/HIDE LOGIC
+---------------------------------------------------------
 mainFrame:RegisterEvent("ADDON_LOADED")
 mainFrame:SetScript("OnEvent", function(self, event, arg1)
     if event == "ADDON_LOADED" and arg1 == addonName then
@@ -933,52 +1070,33 @@ mainFrame:RegisterEvent("ACHIEVEMENT_EARNED")
 
 mainFrame:SetScript("OnShow", function()
     if not tabs[1]:IsEnabled() then
-        generalTitle:Show()
-        generalDescription:Show()
-        generalCurrency:Show()
-        generalExperienceBonus:Show()
-        generalAchievementProgress:Show()
-        generalPhasesTitle:Show()
-        for _, phaseText in ipairs(generalPhaseTexts) do phaseText:Show() end
-        UpdateCurrencyDisplay()
-        UpdateGeneralAchievementProgress()
-        UpdatePhaseTimers()
+        generalTitle:Show(); generalDescription:Show(); generalCurrency:Show(); generalExperienceBonus:Show(); generalAchievementProgress:Show(); generalPhasesTitle:Show()
+        for _, t in ipairs(generalPhaseTexts) do t:Show() end
+        UpdateCurrencyDisplay(); UpdateGeneralAchievementProgress(); UpdatePhaseTimers()
+    elseif not tabs[2]:IsEnabled() then
+        infinitePowerTitle:Show(); infinitePowerContent:Show(); for j = 1, 4 do phaseButtons[j]:Show() end; ShowPhase(1); UpdateInfinitePowerAchievementDisplay()
     elseif not tabs[3]:IsEnabled() then
-        experienceTitle:Show()
-        experienceDescription:Show()
-        for _, title in ipairs(experienceAchievementTitles) do title:Show() end
-        for _, btn in ipairs(experienceLinkButtons) do btn:Show() end
+        experienceTitle:Show(); experienceDescription:Show()
+        for _, t in ipairs(experienceAchievementTitles) do t:Show() end
+        for _, b in ipairs(experienceLinkButtons) do b:Show() end
         UpdateExperienceAchievementDisplay()
     elseif not tabs[4]:IsEnabled() then
-        cosmeticsTitle:Show()
-        cosmeticsTitlesLabel:Show()
-        cosmeticsTransmogsLabel:Show()
-        cosmeticsPetsLabel:Show()
-        for _, title in ipairs(cosmeticsAchievementTitles) do title:Show() end
-        for _, btn in ipairs(cosmeticsLinkButtons) do btn:Show() end
+        cosmeticsTitle:Show(); cosmeticsTitlesLabel:Show(); cosmeticsTransmogsLabel:Show(); cosmeticsPetsLabel:Show()
+        for _, t in ipairs(cosmeticsAchievementTitles) do t:Show() end
+        for _, b in ipairs(cosmeticsLinkButtons) do b:Show() end
         UpdateCosmeticsAchievementDisplay()
     elseif not tabs[5]:IsEnabled() then
-        featsTitle:Show()
-        featsDescription:Show()
-        featsStrengthTitle:Show()
-        featsStrengthDescription:Show()
-        featsUnknownDescription:Show()
-        for _, title in ipairs(featsAchievementTitles) do title:Show() end
-        for _, btn in ipairs(featsLinkButtons) do btn:Show() end
+        featsTitle:Show(); featsDescription:Show(); featsStrengthTitle:Show(); featsStrengthDescription:Show(); featsUnknownDescription:Show()
+        for _, t in ipairs(featsAchievementTitles) do t:Show() end
+        for _, b in ipairs(featsLinkButtons) do b:Show() end
         UpdateFeatsAchievementDisplay()
-    elseif not tabs[2]:IsEnabled() then
-        infinitePowerTitle:Show()
-        infinitePowerContent:Show()
-        for j = 1, 4 do phaseButtons[j]:Show() end
-        ShowPhase(1)
-        UpdateInfinitePowerAchievementDisplay()
+    elseif not tabs[6]:IsEnabled() then
+        settingsTitle:Show(); settingsDesc:Show(); autoChestLabel:Show(); autoChestBtn:Show(); autoChestBtn:SetText(openableScanEnabled and "On" or "Off"); bronzeLabel:Show(); bronzeBtn:Show()
     end
 end)
 
--- Timer for Phase Updates
 C_Timer.NewTicker(86400, UpdatePhaseTimers)
 
--- Slash Command
 SLASH_REMIX1 = "/remix"
 SlashCmdList["REMIX"] = function()
     if remixButton:IsShown() then
@@ -989,3 +1107,36 @@ SlashCmdList["REMIX"] = function()
         RemixButtonState.isShown = true
     end
 end
+
+---------------------------------------------------------
+-- Event frame for quest icons and trait updates (separate)
+---------------------------------------------------------
+-- Create a dedicated event handler to ensure quest icons and selection are updated reliably
+local rootEventFrame = CreateFrame("Frame")
+rootEventFrame:RegisterEvent("QUEST_ACCEPTED")
+rootEventFrame:RegisterEvent("QUEST_REMOVED")
+rootEventFrame:RegisterEvent("QUEST_TURNED_IN")
+rootEventFrame:RegisterEvent("QUEST_LOG_UPDATE")
+rootEventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+rootEventFrame:RegisterEvent("TRAIT_CONFIG_UPDATED")
+rootEventFrame:SetScript("OnEvent", function(self, event, arg1, arg2)
+    if event == "QUEST_ACCEPTED" then
+        -- arg1 = questLogIndex? some clients provide index, arg2 can be questID on some clients. Defer a bit to allow the log to populate.
+        C_Timer.After(0.5, UpdateQuestIcons)
+    elseif event == "QUEST_REMOVED" or event == "QUEST_TURNED_IN" then
+        C_Timer.After(0.5, UpdateQuestIcons)
+    elseif event == "QUEST_LOG_UPDATE" or event == "PLAYER_ENTERING_WORLD" then
+        C_Timer.After(1.0, function()
+            UpdateQuestIcons()
+            UpdateRootSelection()
+        end)
+    elseif event == "TRAIT_CONFIG_UPDATED" then
+        C_Timer.After(0.2, UpdateRootSelection)
+    end
+end)
+
+-- Ensure initial update on load
+C_Timer.After(1.5, function()
+    UpdateQuestIcons()
+    UpdateRootSelection()
+end)

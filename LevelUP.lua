@@ -1,7 +1,6 @@
 local ADDON_NAME = "ZamestoTV_Remix"
 
 -- Map inventory types to equipment slots.
--- Note: Gloves are INVTYPE_HAND (singular) and the slot is INVSLOT_HAND (singular).
 local EquipSlots = {
     INVTYPE_HEAD = {INVSLOT_HEAD},
     INVTYPE_NECK = {INVSLOT_NECK},
@@ -13,9 +12,8 @@ local EquipSlots = {
     INVTYPE_LEGS = {INVSLOT_LEGS},
     INVTYPE_FEET = {INVSLOT_FEET},
     INVTYPE_WRIST = {INVSLOT_WRIST},
-    INVTYPE_HAND = {INVSLOT_HAND},        -- ✅ Correct mapping for gloves
-    -- Accept both just in case some API path returns HANDS on your client
-    INVTYPE_HANDS = {INVSLOT_HAND},       -- ✅ Defensive alias
+    INVTYPE_HAND = {INVSLOT_HAND},
+    INVTYPE_HANDS = {INVSLOT_HAND},
     INVTYPE_FINGER = {INVSLOT_FINGER1, INVSLOT_FINGER2},
     INVTYPE_TRINKET = {INVSLOT_TRINKET1, INVSLOT_TRINKET2},
     INVTYPE_CLOAK = {INVSLOT_BACK},
@@ -31,60 +29,65 @@ local EquipSlots = {
     INVTYPE_TABARD = {INVSLOT_TABARD},
 }
 
-local function GetHighestIlvlInBag(invType)
-    local highestIlvl = 0
-    local highestItemLoc = nil
+-----------------------------------------------------------
+-- PERFORMANCE: cache highest ilvls per inventory type
+-----------------------------------------------------------
+local highestIlvlCache = {} -- keys: invType -> { ilvl = number, bag = number, slot = number }
+
+local function RebuildHighestIlvlCache()
+    -- clear table (use wipe if available)
+    if wipe then
+        wipe(highestIlvlCache)
+    else
+        for k in pairs(highestIlvlCache) do highestIlvlCache[k] = nil end
+    end
 
     for bag = 0, NUM_BAG_SLOTS do
         local numSlots = C_Container.GetContainerNumSlots(bag) or 0
         for slot = 1, numSlots do
             local itemLoc = ItemLocation:CreateFromBagAndSlot(bag, slot)
             if C_Item.DoesItemExist(itemLoc) then
+                -- Create Item object once and query inventory type
                 local item = Item:CreateFromItemLocation(itemLoc)
-                local itemInvType = item:GetInventoryTypeName()
-                if itemInvType and EquipSlots[itemInvType] and itemInvType == invType then
+                local itemInvType = item and item:GetInventoryTypeName()
+                if itemInvType and EquipSlots[itemInvType] then
                     local ilvl = C_Item.GetCurrentItemLevel(itemLoc) or 0
-                    if ilvl > highestIlvl then
-                        highestIlvl = ilvl
-                        highestItemLoc = itemLoc
+                    local cur = highestIlvlCache[itemInvType]
+                    if (not cur) or (ilvl > cur.ilvl) then
+                        highestIlvlCache[itemInvType] = { ilvl = ilvl, bag = bag, slot = slot }
                     end
                 end
             end
         end
     end
-
-    return highestIlvl, highestItemLoc
 end
 
+-----------------------------------------------------------
+-- Determine whether a bag slot is the best to show overlay
+-----------------------------------------------------------
 local function IsHighestIlvlItem(bag, slot)
     local itemLoc = ItemLocation:CreateFromBagAndSlot(bag, slot)
     if not C_Item.DoesItemExist(itemLoc) then
         return false
     end
 
-    local bagIlvl = C_Item.GetCurrentItemLevel(itemLoc) or 0
     local item = Item:CreateFromItemLocation(itemLoc)
+    if not item then return false end
     local invType = item:GetInventoryTypeName()
-    if not invType then
-        return false
-    end
+    if not invType then return false end
 
     local slots = EquipSlots[invType]
-    if not slots or #slots == 0 then
-        return false
-    end
+    if not slots or #slots == 0 then return false end
 
-    -- Is this the highest ilvl item of this type in the bags?
-    local highestIlvl, highestItemLoc = GetHighestIlvlInBag(invType)
-    if not highestItemLoc or bagIlvl < highestIlvl then
-        return false
-    end
-    local hBag, hSlot = highestItemLoc:GetBagAndSlot()
-    if hBag ~= bag or hSlot ~= slot then
-        return false
-    end
+    -- Check cache (built once per update)
+    local cache = highestIlvlCache[invType]
+    if not cache then return false end
 
-    -- Compare against equipped items for the relevant slots
+    local bagIlvl = C_Item.GetCurrentItemLevel(itemLoc) or 0
+    if bagIlvl < cache.ilvl then return false end
+    if cache.bag ~= bag or cache.slot ~= slot then return false end
+
+    -- Compare to equipped items for the relevant equip slots
     local equippedIlvls = {}
     for _, eqSlot in ipairs(slots) do
         if type(eqSlot) == "number" then
@@ -98,7 +101,7 @@ local function IsHighestIlvlItem(bag, slot)
     end
 
     if #equippedIlvls == 0 then
-        -- If we couldn't resolve any equipment slots, don't show.
+        -- If we couldn't resolve equipped items, don't show
         return false
     end
 
@@ -106,6 +109,9 @@ local function IsHighestIlvlItem(bag, slot)
     return bagIlvl > minEquippedIlvl
 end
 
+-----------------------------------------------------------
+-- Overlay / UI handling
+-----------------------------------------------------------
 local function EnsureOverlay(button)
     if not button.myCustomOverlay then
         local tex = button:CreateTexture(nil, "OVERLAY")
@@ -125,13 +131,12 @@ local function UpdateOverlayForButton(button)
     end
 
     local show = IsHighestIlvlItem(bag, slot)
-
-    -- No special-casing for gloves anymore. The logic above handles everything uniformly.
     local overlay = EnsureOverlay(button)
     overlay:SetShown(show)
 end
 
 local function UpdateAllBagButtons()
+    RebuildHighestIlvlCache()
     for containerIndex = 0, NUM_BAG_SLOTS do
         local frame = (containerIndex == 0) and ContainerFrameCombinedBags or _G["ContainerFrame" .. (containerIndex + 1)]
         if frame and frame:IsShown() and frame.Items then
@@ -144,6 +149,24 @@ local function UpdateAllBagButtons()
     end
 end
 
+-----------------------------------------------------------
+-- Throttled update state (use a table instead of function fields)
+-----------------------------------------------------------
+local throttle = { pending = false }
+
+local function ThrottledUpdate()
+    if not throttle.pending then
+        throttle.pending = true
+        C_Timer.After(0.8, function()
+            UpdateAllBagButtons()
+            throttle.pending = false
+        end)
+    end
+end
+
+-----------------------------------------------------------
+-- Frame / Event wiring
+-----------------------------------------------------------
 local frame = CreateFrame("Frame", ADDON_NAME .. "_Frame")
 frame:RegisterEvent("BAG_UPDATE")
 frame:RegisterEvent("BAG_NEW_ITEMS_UPDATED")
@@ -156,13 +179,14 @@ frame:RegisterEvent("ITEM_UNLOCKED")
 
 frame:SetScript("OnEvent", function(self, event, ...)
     if event == "ITEM_LOCKED" or event == "ITEM_UNLOCKED" then
-        C_Timer.After(0.5, UpdateAllBagButtons) -- small delay to avoid flicker while dragging
+        -- slight delay to avoid flicker while dragging
+        C_Timer.After(0.5, ThrottledUpdate)
     else
-        UpdateAllBagButtons()
+        ThrottledUpdate()
     end
 end)
 
--- Hook into container frame generation
+-- Hook into container frame generation so newly-generated frames/buttons update immediately
 hooksecurefunc("ContainerFrame_GenerateFrame", function(contFrame)
     if contFrame and contFrame.Items then
         for _, button in ipairs(contFrame.Items) do
@@ -173,5 +197,4 @@ hooksecurefunc("ContainerFrame_GenerateFrame", function(contFrame)
     end
 end)
 
--- Periodic fallback update
-C_Timer.NewTicker(2, UpdateAllBagButtons)
+-- no periodic NewTicker — we use event-driven + throttled updates

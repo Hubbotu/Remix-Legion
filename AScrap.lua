@@ -30,50 +30,35 @@ local function InitDB()
   end
 end
 
--- API references
+-- Quick API access
 local GetContainerNumSlots = C_Container.GetContainerNumSlots
 local GetContainerItemInfo = C_Container.GetContainerItemInfo
 local UseContainerItem = C_Container.UseContainerItem
-local GetItemInfo = GetItemInfo
 local GetItemStats = C_Item.GetItemStats
 local GetDetailedItemLevelInfo = GetDetailedItemLevelInfo
 local GetInventoryItemLink = GetInventoryItemLink
 local GetItemClassInfo = GetItemClassInfo
 
 -- Only consider Armor items
-local itemTypes = {
-  [GetItemClassInfo(4)] = true,
-}
+local itemTypes = { [GetItemClassInfo(4)] = true }
 
-------------------------------------------------------------
 -- Equipment slot mapping
-------------------------------------------------------------
 local itemEquipLocToSlot = {
-  INVTYPE_HEAD = { 1 },
-  INVTYPE_NECK = { 2 },
-  INVTYPE_SHOULDER = { 3 },
-  INVTYPE_BODY = { 4 },
-  INVTYPE_CHEST = { 5 },
-  INVTYPE_ROBE = { 5 },
-  INVTYPE_WAIST = { 6 },
-  INVTYPE_LEGS = { 7 },
-  INVTYPE_FEET = { 8 },
-  INVTYPE_WRIST = { 9 },
-  INVTYPE_HAND = { 10 },
-  INVTYPE_FINGER = { 11, 12 },
-  INVTYPE_TRINKET = { 13, 14 },
-  INVTYPE_WEAPON = { 16, 17 },
-  INVTYPE_SHIELD = { 17 },
-  INVTYPE_RANGED = { 16 },
-  INVTYPE_CLOAK = { 15 },
-  INVTYPE_2HWEAPON = { 16 },
+  INVTYPE_HEAD = {1}, INVTYPE_NECK = {2}, INVTYPE_SHOULDER = {3}, INVTYPE_BODY = {4},
+  INVTYPE_CHEST = {5}, INVTYPE_ROBE = {5}, INVTYPE_WAIST = {6}, INVTYPE_LEGS = {7},
+  INVTYPE_FEET = {8}, INVTYPE_WRIST = {9}, INVTYPE_HAND = {10},
+  INVTYPE_FINGER = {11, 12}, INVTYPE_TRINKET = {13, 14},
+  INVTYPE_WEAPON = {16, 17}, INVTYPE_SHIELD = {17},
+  INVTYPE_RANGED = {16}, INVTYPE_CLOAK = {15}, INVTYPE_2HWEAPON = {16},
 }
 
 ------------------------------------------------------------
 -- Helpers
 ------------------------------------------------------------
+
 local function ItemStatCheck(itemLink, cfg)
-  local stats = GetItemStats(itemLink) or {}
+  local stats = GetItemStats(itemLink)
+  if not stats then return false end
   for k, v in pairs(cfg.ItemStat) do
     if stats[k] and not v then
       return false
@@ -83,22 +68,21 @@ local function ItemStatCheck(itemLink, cfg)
 end
 
 local function ItemLevelEquippedHigher(itemEquipLoc, itemlevel, itemId)
-  if not itemEquipLocToSlot[itemEquipLoc] then return false end
+  local slots = itemEquipLocToSlot[itemEquipLoc]
+  if not slots then return false end
 
   local allHigher = false
-  for _, slot in pairs(itemEquipLocToSlot[itemEquipLoc]) do
+  for _, slot in ipairs(slots) do
     local equippedItemLink = GetInventoryItemLink("player", slot)
-    if not equippedItemLink then return false end
-
-    local itemLevelEquipped = GetDetailedItemLevelInfo(equippedItemLink)
-    local equippedId = equippedItemLink:match("item:(%d+):")
-
-    if tostring(equippedId) == tostring(itemId) then
-      if itemLevelEquipped > itemlevel then return true end
-    end
-
-    if itemLevelEquipped > itemlevel then
-      allHigher = true
+    if equippedItemLink then
+      local itemLevelEquipped = GetDetailedItemLevelInfo(equippedItemLink)
+      local equippedId = equippedItemLink:match("item:(%d+):")
+      if tostring(equippedId) == tostring(itemId) then
+        if itemLevelEquipped > itemlevel then return true end
+      end
+      if itemLevelEquipped > itemlevel then
+        allHigher = true
+      end
     end
   end
 
@@ -106,69 +90,61 @@ local function ItemLevelEquippedHigher(itemEquipLoc, itemlevel, itemId)
 end
 
 ------------------------------------------------------------
--- Core item filter
+-- Cached bag scan for eligible items
 ------------------------------------------------------------
-local function ItemCheck(bag, slot, cfg)
-  local itemInfo = GetContainerItemInfo(bag, slot)
-  if not itemInfo or itemInfo.isLocked then return false end
 
-  local itemLink = itemInfo.hyperlink
-  if not itemLink then return false end
+local cachedItems = {}
 
-  local _, _, _, _, _, itemType, _, _, itemEquipLoc = GetItemInfo(itemLink)
-  if not itemType or not itemTypes[itemType] then return false end
+local function BuildItemCache(cfg)
+  wipe(cachedItems)
 
-  local itemLevel = GetDetailedItemLevelInfo(itemLink)
-  local itemId = itemLink:match("item:(%d+):")
-
-  if cfg.equippedLower and not ItemLevelEquippedHigher(itemEquipLoc, itemLevel, itemId) then
-    return false
-  end
-
-  if not ItemStatCheck(itemLink, cfg) then
-    return false
-  end
-
-  return true
-end
-
-------------------------------------------------------------
--- Get next eligible item
-------------------------------------------------------------
-local function GetItemLocation(cfg)
   for bag = 0, 4 do
     if not cfg.Bags[bag + 1] then
       local numSlots = GetContainerNumSlots(bag) or 0
       for slot = 1, numSlots do
-        if ItemCheck(bag, slot, cfg) then
-          return bag, slot
+        local itemInfo = GetContainerItemInfo(bag, slot)
+        if itemInfo and not itemInfo.isLocked and itemInfo.hyperlink then
+          local itemLink = itemInfo.hyperlink
+          local _, _, _, _, _, itemType, _, _, itemEquipLoc = GetItemInfo(itemLink)
+          if itemType and itemTypes[itemType] then
+            local itemLevel = GetDetailedItemLevelInfo(itemLink)
+            local itemId = itemLink:match("item:(%d+):")
+
+            if cfg.equippedLower and not ItemLevelEquippedHigher(itemEquipLoc, itemLevel, itemId) then
+              -- skip if not lower
+            elseif ItemStatCheck(itemLink, cfg) then
+              table.insert(cachedItems, { bag = bag, slot = slot })
+            end
+          end
         end
       end
     end
   end
-  return nil, nil
 end
 
 ------------------------------------------------------------
--- Move items
+-- Move eligible items
 ------------------------------------------------------------
+
 local function MoveItems(cfg)
-  if not ScrappingMachineFrame or not ScrappingMachineFrame:IsShown() then
-    return false
-  end
+  if not ScrappingMachineFrame or not ScrappingMachineFrame:IsShown() then return false end
+  if #cachedItems == 0 then BuildItemCache(cfg) end
 
+  local added = 0
   for i = 1, cfg.addCount do
-    local bag, slot = GetItemLocation(cfg)
-    if not bag or not slot then return false end
-    UseContainerItem(bag, slot)
+    local entry = table.remove(cachedItems, 1)
+    if not entry then break end
+    UseContainerItem(entry.bag, entry.slot)
+    added = added + 1
   end
 
-  return true
+  return added > 0
 end
 
 ------------------------------------------------------------
 -- UI button setup
 ------------------------------------------------------------
+
 local function CreateButton()
   local button = CreateFrame("Button", "AutoScrapButton", UIParent, "UIPanelButtonTemplate")
   button:SetSize(100, 24)
@@ -176,6 +152,7 @@ local function CreateButton()
   button:Hide()
 
   button:SetScript("OnClick", function()
+    cachedItems = {} -- reset before scanning
     MoveItems(AutoScrapDB.config)
   end)
 
@@ -215,7 +192,11 @@ local function HookScrapFrame(button)
     button:Show()
   end
 
-  local function OnScrapShow() AnchorButton() end
+  local function OnScrapShow()
+    wipe(cachedItems)
+    AnchorButton()
+  end
+
   local function OnScrapHide() button:Hide() end
 
   if ScrappingMachineFrame then
@@ -228,8 +209,9 @@ local function HookScrapFrame(button)
 end
 
 ------------------------------------------------------------
--- Addon initialization
+-- Initialization
 ------------------------------------------------------------
+
 local evframe = CreateFrame("Frame")
 evframe:RegisterEvent("ADDON_LOADED")
 evframe:SetScript("OnEvent", function(self, event, name)
