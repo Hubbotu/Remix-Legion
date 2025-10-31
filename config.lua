@@ -5,7 +5,7 @@ ns.defaults = {
     profile = {
         show_on_world = true,
         show_on_minimap = true,
-        show_Zamro = true,
+        show_ZamestoTV_Remix = true,
         repeatable = true,
         icon_scale = 1.0,
         icon_alpha = 1.0,
@@ -69,10 +69,10 @@ ns.options = {
             name = L["What to display"],
             inline = true,
             args = {
-                show_Zamro = {
+                show_ZamestoTV_Remix = {
                     type = "toggle",
-                    name = L["Show Zamros"],
-                    desc = L["Show Zamros gold"],
+                    name = L["Show ZamestoTV_Remix"],
+                    desc = L["Show ZamestoTV_Remix gold"],
                     order = 20,
                 },
                 unhide = {
@@ -125,7 +125,7 @@ ns.should_show_point = function(coord, point, currentZone, isMinimap)
     if point.faction and point.faction ~= player_faction then
         return false
     end
-    if point.Zamro and not ns.db.show_Zamro then
+    if point.ZamestoTV_Remix and not ns.db.show_ZamestoTV_Remix then
         return false
     end
     if point.hide_before and not ns.db.upcoming then
@@ -141,4 +141,3 @@ ns.should_show_point = function(coord, point, currentZone, isMinimap)
     end
     return true
 end
-

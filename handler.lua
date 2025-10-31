@@ -35,7 +35,7 @@ local function mob_name(id)
     return name_cache[id]
 end
 
-local default_texture, Zamro_texture
+local default_texture, ZamestoTV_Remix_texture
 local icon_cache = {}
 
 local trimmed_icon = function(texture)
@@ -78,7 +78,7 @@ local function work_out_texture(point)
         end
         return icon_cache[point.atlas]
     end
-    if point.Zamro then
+    if point.ZamestoTV_Remix then
         return {
             icon = point.pathto,
             tCoordLeft = 0,
@@ -99,7 +99,7 @@ local get_point_info = function(point)
     if point then
         local label = work_out_label(point)
         local icon = work_out_texture(point)
-        local category = "Zamro"
+        local category = "ZamestoTV_Remix"
         -- if point.timeRift then
         --     category = "timeRift"
         -- end -- in case to add something else
