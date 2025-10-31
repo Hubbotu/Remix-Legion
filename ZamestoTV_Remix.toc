@@ -9,7 +9,7 @@
 ## X-Category: Map
 ## RequiredDeps: HandyNotes
 ## DefaultState: Enabled
-## SavedVariables: BarrelsOfFunDB,ZorROpenableScanEnabled,BronzeTrackerDB,RemixAddon_SavedVariables,AutoScrapDB,HandyNotes_ZamestoTV_RemixDB, RemixButtonState, HandyNotes_ZamroDB
+## SavedVariables: BarrelsOfFunDB, ZorROpenableScanEnabled, BronzeTrackerDB, RemixAddon_SavedVariables, AutoScrapDB, RemixButtonState, ZamestoTV_RemixDB
 
 ## Category-enUS: Addons ZamestoTV
 ## Category-ruRU: Аддоны ZamestoTV
@@ -35,3 +35,5 @@ AScrap.lua
 WQuest.lua
 FremeAch.lua
 LevelUP.lua
+
+888.lua
