@@ -76,6 +76,7 @@ local L = {
     ["frFR"] = { ["Infinite Power"] = "Pouvoir infini", ["Versatility"] = "Polyvalence" },
     ["deDE"] = { ["Infinite Power"] = "Ewige Macht", ["Versatility"] = "Vielseitigkeit" },
     ["esES"] = { ["Infinite Power"] = "Poder infinito", ["Versatility"] = "Versatilidad" },
+    ["esMX"] = { ["Infinite Power"] = "Poder infinito", ["Versatility"] = "Versatilidad" },
     ["zhCN"] = { ["Infinite Power"] = "永恒能量", ["Versatility"] = "全能" },
     ["zhTW"] = { ["Infinite Power"] = "恆龍之力", ["Versatility"] = "臨機應變" },
 }

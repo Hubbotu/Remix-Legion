@@ -61,6 +61,15 @@ local L = {
         INFINITE_POWER_THIS_SESSION = "Poder infinito esta sesión: ",
         BRONZE_TRACKER = "Rastreador de Bronce y Poder Infinito"
     },
+    esMX = {
+        TOTAL_BRONZE = "Bronce general: ",
+        BRONZE_PER_HOUR = "Bronce por hora: ",
+        BRONZE_THIS_SESSION = "Bronce esta sesión: ",
+        TOTAL_INFINITE_POWER = "Poder infinito total: ",
+        INFINITE_POWER_PER_HOUR = "Poder infinito por hora: ",
+        INFINITE_POWER_THIS_SESSION = "Poder infinito esta sesión: ",
+        BRONZE_TRACKER = "Rastreador de Bronce y Poder Infinito"
+    },
     zhCN = {
         TOTAL_BRONZE = "Total bronze: ",
         BRONZE_PER_HOUR = "Bronze per hour: ",

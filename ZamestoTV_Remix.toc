@@ -24,6 +24,7 @@ Localization/enUS.lua
 Localization/frFR.lua
 Localization/deDE.lua
 Localization/esES.lua
+Localization/esMX.lua
 Localization/zhCN.lua
 Localization/zhTW.lua
 
