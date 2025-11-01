@@ -99,12 +99,11 @@ local L = {
     }
 }
 
--- Set the default language to English
 local lang = GetLocale() -- Automatically sets to the game client locale
 
--- Function to set the language manually
-local function SetLanguage(language)
-    lang = language
+-- Set the default language to English
+if not L[lang] then
+    lang = "enUS"
 end
 
 -- Create a frame for displaying the information
