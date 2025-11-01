@@ -9,7 +9,8 @@
 ## X-Category: Map
 ## RequiredDeps: HandyNotes
 ## DefaultState: Enabled
-## SavedVariables: BarrelsOfFunDB, ZorROpenableScanEnabled, BronzeTrackerDB, RemixAddon_SavedVariables, AutoScrapDB, RemixButtonState, ZamestoTV_RemixDB
+## SavedVariables: BarrelsOfFunDB, ZorROpenableScanEnabled, BronzeTrackerDB, RemixAddon_SavedVariables, AutoScrapDB, RemixButtonState, ZamestoTV_RemixDB, HideKnownDB
+## SavedVariables: HideKnownDB
 
 ## Category-enUS: Addons ZamestoTV
 ## Category-ruRU: Аддоны ZamestoTV
