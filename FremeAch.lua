@@ -186,7 +186,7 @@ remixButton:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end
 -- MAIN FRAME
 ---------------------------------------------------------
 local mainFrame = CreateFrame("Frame", "RemixFrame", UIParent, "BasicFrameTemplateWithInset")
-mainFrame:SetSize(400, 600)
+mainFrame:SetSize(400, 610)
 mainFrame:SetPoint("CENTER")
 mainFrame:Hide()
 mainFrame:RegisterForDrag("LeftButton")
@@ -534,9 +534,13 @@ local cosmeticsAchievements = {
     { id = 42605, name = "Suramar" },
     { id = 42630, name = "Val'Sharah" },
     { id = 42582, name = "Stormheim" },
-    { id = 42666, name = "The Broken Shore PH3" },
+    { id = 42666, name = "The Broken Shore" },
     { id = 42549, name = "Argus" },
     { id = 42583, name = "Mythic: Antorus the Burning Throne" },
+    { id = 61024, name = "The Deathless Champion" },
+    { id = 61027, name = "The Deathless Magus" },
+    { id = 61025, name = "The Deathless Marauder" },
+    { id = 61026, name = "The Deathless Wanderer" },	
     { id = 42319, name = "Azsuna" },
     { id = 42541, name = "Highmountain" }
 }
@@ -572,14 +576,14 @@ for i, ach in ipairs(cosmeticsAchievements) do
 end
 
 local cosmeticsPetsLabel = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-cosmeticsPetsLabel:SetPoint("TOPLEFT", cosmeticsAchievementTitles[14], "BOTTOMLEFT", 0, -10)
+cosmeticsPetsLabel:SetPoint("TOPLEFT", cosmeticsAchievementTitles[18], "BOTTOMLEFT", 0, -10)
 cosmeticsPetsLabel:SetJustifyH("LEFT")
 cosmeticsPetsLabel:SetText("Pets")
 cosmeticsPetsLabel:Hide()
 
 for i = 15, #cosmeticsAchievements do
     cosmeticsAchievementTitles[i]:ClearAllPoints()
-    cosmeticsAchievementTitles[i]:SetPoint("TOPLEFT", i == 15 and cosmeticsPetsLabel or cosmeticsAchievementTitles[i - 1], "BOTTOMLEFT", 0, -10)
+    cosmeticsAchievementTitles[i]:SetPoint("TOPLEFT", i == 19 and cosmeticsPetsLabel or cosmeticsAchievementTitles[i - 1], "BOTTOMLEFT", 0, -10)
 end
 
 ---------------------------------------------------------
