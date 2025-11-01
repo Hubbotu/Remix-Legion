@@ -7,7 +7,7 @@ ns.defaults = {
         show_on_minimap = true,
         show_ZamestoTV_Remix = true,
         repeatable = true,
-        icon_scale = 1.0,
+        icon_scale = 0.6,
         icon_alpha = 1.0,
     },
     char = {
