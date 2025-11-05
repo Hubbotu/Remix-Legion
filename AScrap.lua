@@ -75,29 +75,22 @@ local function ItemStatCheck(itemLink, cfg)
   return true
 end
 
--- Return true if the player's currently equipped item in the same slot(s) is strictly higher level than the given item.
--- If there are multiple possible slots (fingers/trinkets), returns true if ANY equipped item in those slots is higher level.
 local function IsEquippedHigher(itemEquipLoc, bagItemLevel, bagItemId)
   local slots = itemEquipLocToSlot[itemEquipLoc]
   if not slots then return false end
-
   for _, slot in ipairs(slots) do
     local eqLink = GetInventoryItemLink("player", slot)
     if eqLink then
-      -- Extract the numeric item id from link safely
       local eqItemLevel = GetDetailedItemLevelInfo(eqLink)
       if eqItemLevel and (eqItemLevel > bagItemLevel) then
         return true
       end
-      -- If same item id equipped, treat equipped comparison as "higher" only if equipped itemlevel > bag's
-      -- (This is redundant given the eqItemLevel check above but kept explicit.)
       local eqId = eqLink:match("item:(%d+):")
       if eqId and bagItemId and tostring(eqId) == tostring(bagItemId) and eqItemLevel and (eqItemLevel > bagItemLevel) then
         return true
       end
     end
   end
-
   return false
 end
 
@@ -109,7 +102,6 @@ local cachedItems = {}
 
 local function BuildItemCache(cfg)
   wipe(cachedItems)
-
   for bag = 0, 4 do
     if not cfg.Bags[bag + 1] then
       local numSlots = GetContainerNumSlots(bag) or 0
@@ -121,12 +113,7 @@ local function BuildItemCache(cfg)
           if itemType and itemTypes[itemType] then
             local itemLevel = GetDetailedItemLevelInfo(itemLink)
             local itemId = itemLink:match("item:(%d+):")
-
-            -- Only include items that pass ItemStat filters
-            if not ItemStatCheck(itemLink, cfg) then
-              -- skip if stats don't match
-            else
-              -- If equippedLower is true, only include bag items that are lower than (some) equipped item
+            if ItemStatCheck(itemLink, cfg) then
               if cfg.equippedLower then
                 if IsEquippedHigher(itemEquipLoc, itemLevel, itemId) then
                   table.insert(cachedItems, { bag = bag, slot = slot })
@@ -142,11 +129,9 @@ local function BuildItemCache(cfg)
   end
 end
 
--- Build cache for items with an exact item level match.
--- If ignoreEquipped is true, do NOT perform equipped comparison (useful for the 740 button).
+-- Build cache for exact item level, ignoring equipped check if specified
 local function BuildItemCacheForLevel(cfg, targetLevel, ignoreEquipped)
   wipe(cachedItems)
-
   for bag = 0, 4 do
     if not cfg.Bags[bag + 1] then
       local numSlots = GetContainerNumSlots(bag) or 0
@@ -158,22 +143,16 @@ local function BuildItemCacheForLevel(cfg, targetLevel, ignoreEquipped)
           if itemType and itemTypes[itemType] then
             local itemLevel = GetDetailedItemLevelInfo(itemLink)
             local itemId = itemLink:match("item:(%d+):")
-
-            if itemLevel == targetLevel then
-              if not ItemStatCheck(itemLink, cfg) then
-                -- skip by stat filters
+            if itemLevel == targetLevel and ItemStatCheck(itemLink, cfg) then
+              if ignoreEquipped then
+                table.insert(cachedItems, { bag = bag, slot = slot })
               else
-                if ignoreEquipped then
-                  table.insert(cachedItems, { bag = bag, slot = slot })
-                else
-                  -- respect equippedLower behavior if configured
-                  if cfg.equippedLower then
-                    if IsEquippedHigher(itemEquipLoc, itemLevel, itemId) then
-                      table.insert(cachedItems, { bag = bag, slot = slot })
-                    end
-                  else
+                if cfg.equippedLower then
+                  if IsEquippedHigher(itemEquipLoc, itemLevel, itemId) then
                     table.insert(cachedItems, { bag = bag, slot = slot })
                   end
+                else
+                  table.insert(cachedItems, { bag = bag, slot = slot })
                 end
               end
             end
@@ -185,13 +164,12 @@ local function BuildItemCacheForLevel(cfg, targetLevel, ignoreEquipped)
 end
 
 ------------------------------------------------------------
--- Move eligible items into the Scrapping Machine
+-- Move eligible items
 ------------------------------------------------------------
 
 local function MoveItems(cfg)
   if not ScrappingMachineFrame or not ScrappingMachineFrame:IsShown() then return false end
   if #cachedItems == 0 then BuildItemCache(cfg) end
-
   local added = 0
   for i = 1, cfg.addCount do
     local entry = table.remove(cachedItems, 1)
@@ -199,14 +177,12 @@ local function MoveItems(cfg)
     UseContainerItem(entry.bag, entry.slot)
     added = added + 1
   end
-
   return added > 0
 end
 
 local function MoveItemsFromCache(cfg)
   if not ScrappingMachineFrame or not ScrappingMachineFrame:IsShown() then return false end
   if #cachedItems == 0 then return false end
-
   local added = 0
   for i = 1, cfg.addCount do
     local entry = table.remove(cachedItems, 1)
@@ -214,12 +190,11 @@ local function MoveItemsFromCache(cfg)
     UseContainerItem(entry.bag, entry.slot)
     added = added + 1
   end
-
   return added > 0
 end
 
 ------------------------------------------------------------
--- UI button setup
+-- UI buttons
 ------------------------------------------------------------
 
 local function CreateButton()
@@ -227,95 +202,75 @@ local function CreateButton()
   button:SetSize(100, 24)
   button:SetText("Add Items")
   button:Hide()
-
   button:SetScript("OnClick", function()
     cachedItems = {}
     BuildItemCache(AutoScrapDB.config)
     MoveItems(AutoScrapDB.config)
   end)
-
   button:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
     GameTooltip:SetText("Add lower-level equipment to the Scrapping Machine.", 1, 1, 1, true)
     GameTooltip:Show()
   end)
   button:SetScript("OnLeave", function() GameTooltip:Hide() end)
-
   return button
 end
 
--- Create the "740" button which *always* adds exact-itemlevel 740 items (ignoring equipped comparison)
 local function CreateLevelButton()
   local button = CreateFrame("Button", "AutoScrap740Button", UIParent, "UIPanelButtonTemplate")
   button:SetSize(56, 24)
   button:SetText("740")
   button:Hide()
-
   button:SetScript("OnClick", function()
     local cfg = AutoScrapDB.config
     cachedItems = {}
-    -- Build cache for level 740 and IGNORE equipped comparison so the button will place level 740 equipment.
-    BuildItemCacheForLevel(cfg, 740, true)
+    BuildItemCacheForLevel(cfg, 740, true) -- ignore equipped
     MoveItemsFromCache(cfg)
   end)
-
   button:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
     GameTooltip:SetText("Add equipment of item level 740 to the Scrapping Machine (ignores equipped comparison).", 1, 1, 1, true)
     GameTooltip:Show()
   end)
   button:SetScript("OnLeave", function() GameTooltip:Hide() end)
-
   return button
 end
 
 local autoScrapButton = nil
 local level740Button = nil
 
--- Hook the scrap frame and anchor the buttons.
--- The 740 button is anchored immediately to the left of the "Add Items" button.
 local function HookScrapFrame(button)
   if not button then return end
-
   local function AnchorButton()
     if not ScrappingMachineFrame or not ScrappingMachineFrame:IsShown() then
       button:Hide()
       return
     end
-
     button:SetParent(ScrappingMachineFrame)
-
-    -- Find the existing Add Items / Scrap button in the ScrappingMachineFrame
     local scrapBtn = ScrappingMachineFrame.ScrapButton
       or (ScrappingMachineFrame.ButtonFrame and ScrappingMachineFrame.ButtonFrame.ScrapButton)
-
     if scrapBtn then
       if button == autoScrapButton then
         button:ClearAllPoints()
-        button:SetPoint("BOTTOMRIGHT", scrapBtn, "TOPRIGHT", 0, 6)
+        button:SetPoint("BOTTOMRIGHT", scrapBtn, "TOPRIGHT", 0, 3) -- moved 3px down
       elseif button == level740Button then
-        -- place 740 to the left of Add Items (autoScrapButton) if available.
         if autoScrapButton then
           button:ClearAllPoints()
-          -- Anchor RIGHT side of 740 to LEFT side of Add Items, small gap (-6)
-          button:SetPoint("RIGHT", autoScrapButton, "LEFT", -6, 0)
+          button:SetPoint("RIGHT", autoScrapButton, "LEFT", -6, -2) -- align left & 3px down
         else
-          -- fallback position
           button:ClearAllPoints()
-          button:SetPoint("BOTTOMRIGHT", ScrappingMachineFrame, "BOTTOMRIGHT", -5, 35)
+          button:SetPoint("BOTTOMRIGHT", ScrappingMachineFrame, "BOTTOMRIGHT", -5, 32)
         end
       end
     else
-      -- fallback if scrapBtn isn't located
       if button == autoScrapButton then
         button:ClearAllPoints()
-        button:SetPoint("BOTTOMRIGHT", ScrappingMachineFrame, "BOTTOMRIGHT", -5, 35)
+        button:SetPoint("BOTTOMRIGHT", ScrappingMachineFrame, "BOTTOMRIGHT", -5, 32)
       else
         button:ClearAllPoints()
-        button:SetPoint("BOTTOMRIGHT", ScrappingMachineFrame, "BOTTOMRIGHT", -70, 35)
+        button:SetPoint("BOTTOMRIGHT", ScrappingMachineFrame, "BOTTOMRIGHT", -70, 32)
       end
     end
-
     button:Show()
   end
 
@@ -331,7 +286,6 @@ local function HookScrapFrame(button)
     ScrappingMachineFrame:HookScript("OnHide", OnScrapHide)
     if ScrappingMachineFrame:IsShown() then AnchorButton() end
   else
-    -- try again shortly if frame isn't present yet
     C_Timer.After(1, function() HookScrapFrame(button) end)
   end
 end
