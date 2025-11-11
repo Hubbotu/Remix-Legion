@@ -467,7 +467,7 @@ end
 
 -- UTC TIMESTAMPS
 local EU_START_TIME = 1762434000  -- EU: Nov 6, 2025, 12:00 PM (user-confirmed correct)
-local US_START_TIME = 1762466400  -- US: Nov 7, 2025, 1:00 AM (user-confirmed correct)
+local US_START_TIME = 1762333200  -- US: Nov 7, 2025, 1:00 AM (user-confirmed correct)
 
 local INVASION_INTERVAL = (14 * 3600) + (30 * 60)  -- 18h 30m = 66600 seconds
 local currentRegion = "EU"
