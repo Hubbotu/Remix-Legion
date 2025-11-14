@@ -355,6 +355,7 @@ local tabContent = {
     { name = "Infinite Power", text = "" },
     { name = "Experience", text = "" },
     { name = "Cosmetics", text = "" },
+    { name = "Decoration", text = "" },
     { name = "Feats", text = "" },
     { name = "Settings", text = "" },
 }
@@ -641,6 +642,76 @@ for i = 19, #cosmeticsAchievements do
     cosmeticsAchievementTitles[i]:ClearAllPoints()
     cosmeticsAchievementTitles[i]:SetPoint("TOPLEFT", i == 19 and cosmeticsPetsLabel or cosmeticsAchievementTitles[i - 1], "BOTTOMLEFT", 0, -10)
 end
+
+-- DECORATION TAB
+local decorationTitle = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+decorationTitle:SetFont("Fonts\\FRIZQT__.TTF", 20)
+decorationTitle:SetPoint("TOP", contentFrame, "TOP", 0, -20)
+decorationTitle:SetJustifyH("CENTER")
+decorationTitle:SetText("Home Decor")
+decorationTitle:Hide()
+
+local decorationDesc = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+decorationDesc:SetPoint("TOP", decorationTitle, "BOTTOM", 0, -10)
+decorationDesc:SetJustifyH("CENTER")
+decorationDesc:SetText("The Merchant will be available with the release of 11.2.7")
+decorationDesc:Hide()
+
+local decorationAchievements = {
+    { id = 42318, name = "Court of Farondis" },
+    { id = 61218, name = "The Wardens" },
+    { id = 42619, name = "Dreamweavers" },
+    { id = 42658, name = "Valarjar" },
+    { id = 42547, name = "Highmountain Tribe" },
+    { id = 42628, name = "The Nightfallen" },
+    { id = 42655, name = "The Armies of Legionfall" },
+    { id = 42627, name = "Argussian Reach" },
+    { id = 42674, name = "Broken Isles World Quests V" },
+    { id = 61054, name = "Heroic Broken Isles World Quests III" },
+    { id = 42675, name = "Defending the Broken Isles III" },
+    { id = 61060, name = "Power of the Obelisks II" },
+    { id = 42692, name = "Broken Isles Dungeoneer" },
+    { id = 42689, name = "Timeworn Keystone Master" },
+    { id = 42321, name = "Legion Remix Raids" },
+}
+
+local decorationAchievementTitles = {}
+local decorationLinkButtons = {}
+for i, ach in ipairs(decorationAchievements) do
+    local prev = i == 1 and decorationDesc or decorationAchievementTitles[i - 1]
+    local title = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    title:SetPoint("TOPLEFT", prev, "BOTTOMLEFT", 0, -10)
+    title:SetJustifyH("LEFT")
+    title:SetWidth(300)
+    title:Hide()
+    decorationAchievementTitles[i] = title
+
+    local linkBtn = CreateFrame("Button", nil, contentFrame, "UIPanelButtonTemplate")
+    linkBtn:SetSize(60, 22)
+    linkBtn:SetText("Link")
+    linkBtn:SetPoint("LEFT", title, "RIGHT", 5, 0)
+    linkBtn:SetScript("OnClick", function()
+        if not AchievementFrame then AchievementFrame_LoadUI() end
+        if AchievementFrame then OpenAchievementFrameToAchievement(ach.id) end
+    end)
+    linkBtn:Hide()
+    decorationLinkButtons[i] = linkBtn
+end
+
+local function UpdateDecorationAchievementDisplay()
+    for i, ach in ipairs(decorationAchievements) do
+        local title = decorationAchievementTitles[i]
+        local id, name, _, completed = GetAchievementInfo(ach.id)
+        if name then
+            title:SetText(name)
+            if completed then title:SetTextColor(0, 1, 0) else title:SetTextColor(1, 0, 0) end
+        else
+            title:SetText(ach.name .. " (Unknown)")
+            title:SetTextColor(1, 0, 0)
+        end
+    end
+end
+
 
 -- FEATS TAB
 local featsTitle = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
@@ -1049,6 +1120,9 @@ for i, tabInfo in ipairs(tabContent) do
         cosmeticsTitle:Hide(); cosmeticsTitlesLabel:Hide(); cosmeticsTransmogsLabel:Hide(); cosmeticsPetsLabel:Hide()
         for _, t in ipairs(cosmeticsAchievementTitles) do t:Hide() end
         for _, b in ipairs(cosmeticsLinkButtons) do b:Hide() end
+        decorationTitle:Hide(); decorationDesc:Hide()
+        for _, t in ipairs(decorationAchievementTitles) do t:Hide() end
+        for _, b in ipairs(decorationLinkButtons) do b:Hide() end
         featsTitle:Hide(); featsDescription:Hide(); featsStrengthTitle:Hide(); featsStrengthDescription:Hide(); featsUnknownDescription:Hide()
         for _, t in ipairs(featsAchievementTitles) do t:Hide() end
         for _, b in ipairs(featsLinkButtons) do b:Hide() end
@@ -1073,11 +1147,16 @@ for i, tabInfo in ipairs(tabContent) do
             for _, b in ipairs(cosmeticsLinkButtons) do b:Show() end
             UpdateCosmeticsAchievementDisplay()
         elseif i == 5 then
+            decorationTitle:Show(); decorationDesc:Show()
+            for _, t in ipairs(decorationAchievementTitles) do t:Show() end
+            for _, b in ipairs(decorationLinkButtons) do b:Show() end
+            UpdateDecorationAchievementDisplay()
+        elseif i == 6 then
             featsTitle:Show(); featsDescription:Show(); featsStrengthTitle:Show(); featsStrengthDescription:Show(); featsUnknownDescription:Show()
             for _, t in ipairs(featsAchievementTitles) do t:Show() end
             for _, b in ipairs(featsLinkButtons) do b:Show() end
             UpdateFeatsAchievementDisplay()
-        elseif i == 6 then
+        elseif i == 7 then
             settingsTitle:Show(); settingsDesc:Show(); autoChestLabel:Show(); autoChestBtn:Show(); autoChestBtn:SetText(openableScanEnabled and "On" or "Off"); bronzeLabel:Show(); bronzeBtn:Show()
         end
 
@@ -1104,7 +1183,8 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
             if not tabs[2]:IsEnabled() then UpdateInfinitePowerAchievementDisplay() end
             if not tabs[3]:IsEnabled() then UpdateExperienceAchievementDisplay() end
             if not tabs[4]:IsEnabled() then UpdateCosmeticsAchievementDisplay() end
-            if not tabs[5]:IsEnabled() then UpdateFeatsAchievementDisplay() end
+            if not tabs[5]:IsEnabled() then UpdateDecorationAchievementDisplay() end
+            if not tabs[6]:IsEnabled() then UpdateFeatsAchievementDisplay() end
         end)
     end
 end)
