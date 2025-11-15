@@ -1,4 +1,3 @@
--- FremeAch.lua (FINAL - Remix Button + Legion Invasion in General Tab)
 local addonName, addon = ...
 
 ---------------------------------------------------------
@@ -490,12 +489,10 @@ local function UpdateInvasionInfo(region)
         activeInvasionText:SetText("Active invasion: no active")
     end
 
-    -- Next invasion: uses correct base time per region
     local base_time = (region == "US") and US_START_TIME or EU_START_TIME
     local now = time()
     local next_time = base_time
 
-    -- Advance to next future occurrence
     while next_time <= now do
         next_time = next_time + INVASION_INTERVAL
     end
@@ -504,18 +501,15 @@ local function UpdateInvasionInfo(region)
     nextInvasionText:SetText("Next invasion through: " .. FormatTime(nextIn))
 end
 
--- Button handlers
 btnEU:SetScript("OnClick", function() UpdateInvasionInfo("EU") end)
 btnUS:SetScript("OnClick", function() UpdateInvasionInfo("US") end)
 
--- Live update every 30 seconds when tab is open
 C_Timer.NewTicker(30, function()
     if mainFrame:IsShown() and legionInvasionTitle:IsShown() then
         UpdateInvasionInfo(currentRegion)
     end
 end)
 
--- Initial load
 C_Timer.After(1, function() UpdateInvasionInfo("EU") end)
 
 -- EXPERIENCE TAB
@@ -677,19 +671,45 @@ local decorationAchievements = {
 
 local decorationAchievementTitles = {}
 local decorationLinkButtons = {}
+
+local SPECIAL_ID = 61054
+local BASE_Y_OFFSET = -80
+local LINE_HEIGHT = 22
+local SPECIAL_LINE_HEIGHT = 28
+local EXTRA_GAP_AFTER_SPECIAL = 3
+
+local cumulativeOffset = 0
+
 for i, ach in ipairs(decorationAchievements) do
-    local prev = i == 1 and decorationDesc or decorationAchievementTitles[i - 1]
     local title = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    title:SetPoint("TOPLEFT", prev, "BOTTOMLEFT", 0, -10)
     title:SetJustifyH("LEFT")
     title:SetWidth(300)
+    title:SetWordWrap(true)
+    
+    local thisHeight = LINE_HEIGHT
+    
+    if ach.id == SPECIAL_ID then
+        title:SetFontObject("GameFontNormalSmall")
+        thisHeight = SPECIAL_LINE_HEIGHT
+    end
+    
+    local yOffset = BASE_Y_OFFSET - cumulativeOffset
+    title:SetPoint("TOPLEFT", contentFrame, "TOPLEFT", 0, yOffset)
+    title:SetHeight(thisHeight)
+    title:SetText(ach.name)
     title:Hide()
     decorationAchievementTitles[i] = title
+
+    cumulativeOffset = cumulativeOffset + thisHeight
+    if ach.id == SPECIAL_ID then
+        cumulativeOffset = cumulativeOffset + EXTRA_GAP_AFTER_SPECIAL
+    end
 
     local linkBtn = CreateFrame("Button", nil, contentFrame, "UIPanelButtonTemplate")
     linkBtn:SetSize(60, 22)
     linkBtn:SetText("Link")
     linkBtn:SetPoint("LEFT", title, "RIGHT", 5, 0)
+    linkBtn:SetPoint("RIGHT", contentFrame, "RIGHT", 0, 0)
     linkBtn:SetScript("OnClick", function()
         if not AchievementFrame then AchievementFrame_LoadUI() end
         if AchievementFrame then OpenAchievementFrameToAchievement(ach.id) end
