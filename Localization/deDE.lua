@@ -307,6 +307,147 @@ L["Enchanted Burial Urn Note"] = true
 L["Kyrtos's Research Notes"] = true
 L["Kyrtos's Research Notes Note"] = true
 
+-- Krokuun (Rare)
+L["Commander Sathrenael"] = true
+L["Commander Sathrenael Note"] = true
+L["Commander Vecaya"] = true
+L["Commander Vecaya Note"] = true
+L["Khazaduum"] = true
+L["Khazaduum Note"] = true
+L["Imp Mother Laglath"] = true
+L["Imp Mother Laglath Note"] = true
+L["Commander Endaxis"] = true
+L["Commander Endaxis Note"] = true
+L["Sister Subversia"] = true
+L["Sister Subversia Note"] = true
+L["Talestra the Vile"] = true
+L["Talestra the Vile Note"] = true
+L["Siegemaster Voraan"] = true
+L["Siegemaster Voraan Note"] = true
+L["Vagath the Betrayed"] = true
+L["Vagath the Betrayed Note"] = true
+L["Naroua"] = true
+L["Naroua Note"] = true
+L["Tar Spitter"] = true
+L["Tar Spitter Note"] = true
+L["Tereck the Selector"] = true
+L["Tereck the Selector Note"] = true
+
+-- Krokuun (Treasure)
+L["Krokul Emergency Cache"] = true
+L["Krokul Emergency Cache Note"] = true
+L["Lost Krokul Chest"] = true
+L["Legion Tower Chest"] = true
+L["Vindicaar Matrix Core Note"] = true
+L["Precious Augari Keepsakes"] = true
+L["Long-Lost Augari Treasure"] = true
+L["Sigil of Awakening Note"] = true
+L["Eredar War Supplies"] = true
+L["Eredar War Supplies Note"] = true
+
+
+-- Antoran Wastes (Rare)
+L["Worldsplitter Skuul"] = true
+L["Worldsplitter Skuul Note"] = true
+L["Watcher Aival"] = true
+L["Watcher Aival Note"] = true
+L["Vrax'thul"] = true
+L["Vrax'thul Note"] = true
+L["Void Warden Valsuran"] = true
+L["Void Warden Valsuran Note"] = true
+L["Gar'zoth"] = true
+L["Gar'zoth Note"] = true
+L["Mistress Il'thendra"] = true
+L["Mistress Il'thendra Note"] = true
+L["Doomcaster Suprax"] = true
+L["doomcaster_suprax_note"] = true
+L["Inquisitor Vethroz"] = true
+L["Inquisitor Vethroz Note"] = true
+L["Chief Alchemist Munculus"] = true
+L["Chief Alchemist Munculus Note"] = true
+L["Wrath-Lord Yarez"] = true
+L["Wrath-Lord Yarez Note"] = true
+L["Blistermaw"] = true
+L["Blistermaw Note"] = true
+L["Lieutenant Xakaar"] = true
+L["Lieutenant Xakaar Note"] = true
+L["Houndmaster Kerrax"] = true
+L["Houndmaster Kerrax Note"] = true
+L["Puscilla"] = true
+L["Puscilla Note"] = true
+L["Varga"] = true
+L["drops_fel_spotted_egg"] = true
+L["Ven'orn"] = true
+L["ven_orn_note"] = true
+L["Reziera the Seer"] = true
+L["reziera_the_seer_note"] = true
+L["Mother Rosula"] = true
+L["mother_rosula_note"] = true
+L["All-Seer's Left Eye"] = true
+L["All-Seer's Left Eye Note"] = true
+L["The Many-Faced Devourer"] = true
+L["the_many_faced_devourer_note"] = true
+L["the_many_faced_devourer_checklist"] = true
+
+-- Antoran Wastes (Treasure)
+L["Forgotten Legion Supplies"] = true
+L["Fel-Bound Chest"] = true
+L["Ancient Legion War Cache"] = true
+L["Missing Augari Chest"] = true
+L["Legion Treasure Hoard"] = true
+L["Legion Treasure Hoard Note"] = true
+L["Timeworn Fel Chest"] = true
+L["Timeworn Fel Chest Note"] = true
+L["Legion War Supplies"] = true
+L["Legion War Supplies Note"] = true
+
+-- Eredath (Rare)
+L["Captain Faruq"] = true
+L["Captain Faruq Note"] = true
+L["Ataxon"] = true
+L["Ataxon Note"] = true
+L["Venomtail Skyfin"] = true
+L["Venomtail Skyfin Note"] = true
+L["Umbraliss"] = true
+L["Umbraliss Note"] = true
+L["Herald of Chaos"] = true
+L["Herald of Chaos Note"] = true
+L["Vigilant Thanos"] = true
+L["Vigilant Thanos Note"] = true
+L["Kaara the Pale"] = true
+L["kaara_the_pale_note"] = true
+L["Turek the Lucid"] = true
+L["turek_the_lucid_note"] = true
+L["Feasel the Muffin Thief"] = true
+L["Feasel the Muffin Thief Note"] = true
+L["Sabuul"] = true
+L["drops_fel_spotted_egg"] = true
+L["Baruut the Bloodthirsty"] = true
+L["Baruut the Bloodthirsty Note"] = true
+L["Shadowcaster Voruun"] = true
+L["Shadowcaster Voruun Note"] = true
+L["Jed'hin Champion Vorusk"] = true
+L["Jed'hin Champion Vorusk Note"] = true
+L["Instructor Tarahna"] = true
+L["Instructor Tarahna Note"] = true
+L["Watcher Aival"] = true
+L["Watcher Aival Note"] = true
+L["Slithon the Last"] = true
+L["Slithon the Last Note"] = true
+L["Wrangler Kravos"] = true
+L["Wrangler Kravos Note"] = true
+L["Puscilla"] = true
+L["Puscilla Note"] = true
+L["Sorumaru"] = true
+L["Sorumaru Note"] = true
+L["Overseer Y'Beda"] = true
+L["Overseer Y'Beda Note"] = true
+
+-- Eredath (Treasure)
+L["Ancient Eredath Cache"] = true
+L["Ancient Eredath Cache Note"] = true
+L["Void-Seeped Cache"] = true
+
 -- Waypoints
 L["Create waypoint"] = true
 L["Create all waypoints"] = true

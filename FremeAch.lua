@@ -415,7 +415,10 @@ for i = 1, 5 do
     generalPhaseTexts[i] = phaseText
 end
 
+---------------------------------------------------------
 -- LEGION INVASION
+---------------------------------------------------------
+
 local legionInvasionTitle = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 legionInvasionTitle:SetFont("Fonts\\FRIZQT__.TTF", 20)
 legionInvasionTitle:SetPoint("TOP", generalPhaseTexts[5], "BOTTOM", 0, -30)
@@ -453,7 +456,7 @@ btnUS:SetText("US")
 btnUS:SetPoint("TOP", regionLabel, "BOTTOM", 30, -5)
 btnUS:Hide()
 
--- LEGION INVASION
+-- Use the area POI API if available
 local GetAreaPOISecondsLeft = C_AreaPoiInfo and C_AreaPoiInfo.GetAreaPOISecondsLeft or function() return nil end
 local zonePOIIds = { 5177, 5178, 5210, 5175 }
 local zoneNames = { "Highmountain", "Stormheim", "Val'Sharah", "Azsuna" }
@@ -472,6 +475,14 @@ local US_START_TIME = 1762333200  -- US: Nov 7, 2025, 1:00 AM (user-confirmed co
 local INVASION_INTERVAL = (14 * 3600) + (30 * 60)  -- 18h 30m = 66600 seconds
 local currentRegion = "EU"
 
+local invasionIcon = contentFrame:CreateTexture(nil, "ARTWORK")
+invasionIcon:SetSize(36, 36)
+invasionIcon:SetPoint("LEFT", legionInvasionTitle, "RIGHT", 8, 0)
+
+invasionIcon:SetAtlas("legioninvasion-map-icon-portal-large")
+
+invasionIcon:Hide()
+
 local function UpdateInvasionInfo(region)
     currentRegion = region
 
@@ -488,6 +499,8 @@ local function UpdateInvasionInfo(region)
     if not found then
         activeInvasionText:SetText("Active invasion: no active")
     end
+
+    invasionIcon:SetShown(found and legionInvasionTitle:IsShown())
 
     local base_time = (region == "US") and US_START_TIME or EU_START_TIME
     local now = time()
@@ -1130,10 +1143,11 @@ for i, tabInfo in ipairs(tabContent) do
     tabButton:SetText(tabInfo.name)
     tabButton:SetPoint("TOPLEFT", mainFrame, "TOPRIGHT", 5, -30 - (i - 1) * 30)
     tabButton:SetScript("OnClick", function()
-        -- Hide all
         generalTitle:Hide(); generalDescription:Hide(); generalCurrency:Hide(); generalExperienceBonus:Hide(); generalAchievementProgress:Hide(); generalPhasesTitle:Hide()
         for _, t in ipairs(generalPhaseTexts) do t:Hide() end
         legionInvasionTitle:Hide(); activeInvasionText:Hide(); nextInvasionText:Hide(); regionLabel:Hide(); btnEU:Hide(); btnUS:Hide()
+        invasionIcon:Hide()
+
         experienceTitle:Hide(); experienceDescription:Hide()
         for _, t in ipairs(experienceAchievementTitles) do t:Hide() end
         for _, b in ipairs(experienceLinkButtons) do b:Hide() end
@@ -1151,7 +1165,6 @@ for i, tabInfo in ipairs(tabContent) do
         scrollFrame:Hide()
         settingsTitle:Hide(); settingsDesc:Hide(); autoChestLabel:Hide(); autoChestBtn:Hide(); bronzeLabel:Hide(); bronzeBtn:Hide()
 
-        -- Show selected
         if i == 1 then
             ShowGeneralTab()
         elseif i == 2 then
