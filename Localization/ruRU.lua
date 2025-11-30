@@ -334,15 +334,15 @@ L["Tereck the Selector"] = "|cFFFFFFFFTereck the Selector|r"
 L["Tereck the Selector Note"] = "Содержит |cFFFFFFFFБронзу|r или токен на реп. и жетон репутации."
 
 -- Krokuun (Treasure)
-L["Krokul Emergency Cache"] = "|cFFFFFFFFKrokul Emergency Cache|r"
-L["Krokul Emergency Cache Note"] = "Requires completion of |cFFFFFF00Forming a Bond|r (Lightforged Warframe)."
-L["Lost Krokul Chest"] = "|cFFFFFFFFLost Krokul Chest|r"
-L["Legion Tower Chest"] = "|cFFFFFFFFLegion Tower Chest|r"
-L["Vindicaar Matrix Core Note"] = "Requires |cFFFFFF00Light's Judgement|r unlocked via Vindicaar Matrix Core."
-L["Precious Augari Keepsakes"] = "|cFFFFFFFFPrecious Augari Keepsakes|r"
-L["Long-Lost Augari Treasure"] = "|cFFFFFFFFLong-Lost Augari Treasure|r"
-L["Sigil of Awakening Note"] = "Сундук может находиться в нескольких местах. Requires |cFFFFFF00Shroud of Arcane Echoes|r unlocked via Sigil of Awakening."
-L["Eredar War Supplies"] = "|cFFFFFFFFEredar War Supplies|r"
+L["Krokul Emergency Cache"] = "|cFFFFFFFFНеприкосновенные запасы крокула|r"
+L["Krokul Emergency Cache Note"] = "Требуется завершение задания |cFFFFFF00Создание связи|r (Экзоскелет озаренных)."
+L["Lost Krokul Chest"] = "|cFFFFFFFFПотерянный сундук крокула|r"
+L["Legion Tower Chest"] = "|cFFFFFFFFСундук из башни Легиона|r"
+L["Vindicaar Matrix Core Note"] = "Требует |cFFFFFF00Правосудие Света|r разблокирован через задание Ядро матрицы Виндикара."
+L["Precious Augari Keepsakes"] = "|cFFFFFFFFБесценные сувениры авгари|r"
+L["Long-Lost Augari Treasure"] = "|cFFFFFFFFДавно утерянные сокровища авгари|r"
+L["Sigil of Awakening Note"] = "Сундук может находиться в нескольких местах. Требует |cFFFFFF00Магический покров|r разблокирован через задание Печать Пробуждения."
+L["Eredar War Supplies"] = "|cFFFFFFFFЭредарские военные припасы|r"
 L["Eredar War Supplies Note"] = "Сундук может находиться в нескольких местах. Содержит |cFFFFFFFFБронзу|r или токен на реп. и жетон репутации."
 
 
@@ -390,15 +390,15 @@ L["the_many_faced_devourer_note"] = "Requires 4 different skulls to summon."
 L["the_many_faced_devourer_checklist"] = "Skulls needed:"
 
 -- Antoran Wastes (Treasure)
-L["Forgotten Legion Supplies"] = "|cFFFFFFFFForgotten Legion Supplies|r"
-L["Fel-Bound Chest"] = "|cFFFFFFFFFel-Bound Chest|r"
-L["Ancient Legion War Cache"] = "|cFFFFFFFFAncient Legion War Cache|r"
-L["Missing Augari Chest"] = "|cFFFFFFFFMissing Augari Chest|r"
-L["Legion Treasure Hoard"] = "|cFFFFFFFFLegion Treasure Hoard|r"
+L["Forgotten Legion Supplies"] = "|cFFFFFFFFЗабытые припасы Легиона|r"
+L["Fel-Bound Chest"] = "|cFFFFFFFFНаполненный Скверной сундук|r"
+L["Ancient Legion War Cache"] = "|cFFFFFFFFДревний военный тайник Легиона|r"
+L["Missing Augari Chest"] = "|cFFFFFFFFПропавший сундук авгари|r"
+L["Legion Treasure Hoard"] = "|cFFFFFFFFСобранные Легионом сокровища|r"
 L["Legion Treasure Hoard Note"] = "Сундук может находиться в нескольких местах. Содержит |cFFFFFFFFБронзу|r или токен на реп. и жетон репутации."
-L["Timeworn Fel Chest"] = "|cFFFFFFFFTimeworn Fel Chest|r"
+L["Timeworn Fel Chest"] = "|cFFFFFFFFСундук Скверны с Древнего берега|r"
 L["Timeworn Fel Chest Note"] = "Сундук может находиться в нескольких местах. Содержит |cFFFFFFFFБронзу|r или токен на реп. и жетон репутации."
-L["Legion War Supplies"] = "|cFFFFFFFFLegion War Supplies|r"
+L["Legion War Supplies"] = "|cFFFFFFFFВоенные припасы Легиона|r"
 L["Legion War Supplies Note"] = "Сундук может находиться в нескольких местах. Содержит |cFFFFFFFFБронзу|r или токен на реп. и жетон репутации."
 
 -- Eredath (Rare)
@@ -444,9 +444,9 @@ L["Overseer Y'Beda"] = "|cFFFFFFFFOverseer Y'Beda|r"
 L["Overseer Y'Beda Note"] = "Содержит |cFFFFFFFFБронзу|r или токен на реп. и жетон репутации."
 
 -- Eredath (Treasure)
-L["Ancient Eredath Cache"] = "|cFFFFFFFFAncient Eredath Cache|r"
+L["Ancient Eredath Cache"] = "|cFFFFFFFFДревний эредарский тайник|r"
 L["Ancient Eredath Cache Note"] = "Сундук может находиться в нескольких местах. Содержит |cFFFFFFFFБронзу|r или токен на реп. и жетон репутации."
-L["Void-Seeped Cache"] = "|cFFFFFFFFVoid-Seeped Cache|r"
+L["Void-Seeped Cache"] = "|cFFFFFFFFТронутый Бездной тайник|r"
 
 -- Waypoints
 L["Create waypoint"] = "Создать путевую точку"
