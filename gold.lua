@@ -3079,7 +3079,6 @@ ns.points = {
     [65005300] = ({ label = L["Ven'orn"], cont = true, quest = 48811, ZamestoTV_Remix = true, note = L["ven_orn_note"], pathto = "Interface\\Addons\\"..myname.."\\Icons\\fskull.tga" }),
     [65008240] = ({ label = L["Reziera the Seer"], cont = true, quest = 48971, ZamestoTV_Remix = true, note = L["reziera_the_seer_note"], pathto = "Interface\\Addons\\"..myname.."\\Icons\\fskull.tga" }),
     [66701800] = ({ label = L["Mother Rosula"], cont = true, quest = 48970, ZamestoTV_Remix = true, note = L["mother_rosula_note"], pathto = "Interface\\Addons\\"..myname.."\\Icons\\fskull.tga" }),
-    [73607200] = ({ label = L["All-Seer's Left Eye"], cont = true, quest = 48817, ZamestoTV_Remix = true, note = L["All-Seer's Left Eye Note"], pathto = "Interface\\Addons\\"..myname.."\\Icons\\fskull.tga" }),
     [54803910] = ({ label = L["The Many-Faced Devourer"], cont = true, quest = 48866, ZamestoTV_Remix = true, note = L["the_many_faced_devourer_note"], pathto = "Interface\\Addons\\"..myname.."\\Icons\\fskull.tga" }),
     },
 	[882] = { -- Eredath

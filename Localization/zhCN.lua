@@ -383,11 +383,8 @@ L["Reziera the Seer"] = true
 L["reziera_the_seer_note"] = true
 L["Mother Rosula"] = true
 L["mother_rosula_note"] = true
-L["All-Seer's Left Eye"] = true
-L["All-Seer's Left Eye Note"] = true
 L["The Many-Faced Devourer"] = true
 L["the_many_faced_devourer_note"] = true
-L["the_many_faced_devourer_checklist"] = true
 
 -- Antoran Wastes (Treasure)
 L["Forgotten Legion Supplies"] = true
