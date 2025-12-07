@@ -402,7 +402,7 @@ local phaseData = {
     { name = "Phase 2 - Rise of the Nightfallen", startDate = 1761091200 },
     { name = "Phase 3 - Legionfall", startDate = 1762291200 },
     { name = "Phase 4 - Argus Eternal", startDate = 1763491200 },
-    { name = "Phase 5 - Infinite Echoes", startDate = 1765065600 }
+    { name = "Phase 5 - Infinite Echoes", startDate = 1765227600 }
 }
 
 local generalPhaseTexts = {}
