@@ -219,17 +219,17 @@ end
 local function CreateLevelButton()
   local button = CreateFrame("Button", "AutoScrap740Button", UIParent, "UIPanelButtonTemplate")
   button:SetSize(56, 24)
-  button:SetText("740")
+  button:SetText("779")
   button:Hide()
   button:SetScript("OnClick", function()
     local cfg = AutoScrapDB.config
     cachedItems = {}
-    BuildItemCacheForLevel(cfg, 740, true) -- ignore equipped
+    BuildItemCacheForLevel(cfg, 779, true) -- ignore equipped
     MoveItemsFromCache(cfg)
   end)
   button:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-    GameTooltip:SetText("Add equipment of item level 740 to the Scrapping Machine (ignores equipped comparison).", 1, 1, 1, true)
+    GameTooltip:SetText("Add equipment of item level 779 to the Scrapping Machine (ignores equipped comparison).", 1, 1, 1, true)
     GameTooltip:Show()
   end)
   button:SetScript("OnLeave", function() GameTooltip:Hide() end)
