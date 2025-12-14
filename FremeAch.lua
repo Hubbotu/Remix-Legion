@@ -776,7 +776,7 @@ featsStrengthDescription:Hide()
 local featsUnknownDescription = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 featsUnknownDescription:SetPoint("TOP", featsStrengthDescription, "BOTTOM", 0, -60)
 featsUnknownDescription:SetJustifyH("CENTER")
-featsUnknownDescription:SetText("Unknown how to get the achievement.")
+featsUnknownDescription:SetText("Miscellaneous")
 featsUnknownDescription:Hide()
 
 local featsAchievements = {
@@ -787,7 +787,8 @@ local featsAchievements = {
     { id = 16658, name = "Keystone Hero: Court of Stars" },
     { id = 15692, name = "Keystone Hero: Return to Karazhan" },
     { id = 61339, name = "Putting the Finite in Infinite" },
-    { id = 42807, name = "Cloudy With a Chance of Infernals" }
+    { id = 42807, name = "Cloudy With a Chance of Infernals" },
+    { id = 11065, name = "It All Makes Sense Now" }	
 }
 
 local featsAchievementTitles = {}
@@ -833,6 +834,32 @@ for i = 7, 8 do
     linkBtn:Hide()
     featsLinkButtons[i] = linkBtn
 end
+
+-- Achievement 9: It All Makes Sense Now
+do
+    local i = 9
+
+    local title = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    title:SetJustifyH("LEFT")
+    title:SetWidth(300)
+    title:SetPoint("TOPLEFT", featsAchievementTitles[8], "BOTTOMLEFT", 0, -10)
+    title:Hide()
+    featsAchievementTitles[i] = title
+
+    local linkBtn = CreateFrame("Button", nil, contentFrame, "UIPanelButtonTemplate")
+    linkBtn:SetSize(60, 22)
+    linkBtn:SetText("Link")
+    linkBtn:SetPoint("LEFT", title, "RIGHT", 5, 0)
+    linkBtn:SetScript("OnClick", function()
+        if not AchievementFrame then AchievementFrame_LoadUI() end
+        if AchievementFrame then
+            OpenAchievementFrameToAchievement(featsAchievements[i].id)
+        end
+    end)
+    linkBtn:Hide()
+    featsLinkButtons[i] = linkBtn
+end
+
 
 -- SETTINGS TAB
 local settingsTitle = contentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
